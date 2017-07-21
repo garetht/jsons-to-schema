@@ -1,0 +1,9 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- hjsonpointer-1.2.0
+- hjsonschema-1.6.3
+- text-1.2.2.2
+resolver: lts-6.35
