@@ -17,7 +17,9 @@ library
   hs-source-dirs:      src
   default-extensions:
     OverloadedStrings
+    NoImplicitPrelude
   exposed-modules:     Lib
+                     , JSONSchema.SchemaConverter
   build-depends:       base >= 4.7 && < 5
                      , hjsonschema
                      , text
