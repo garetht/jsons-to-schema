@@ -1,13 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Lib
-  (someFunc)
+  (executor)
   where
 
 import Protolude
 import qualified Data.Aeson as AE
 import qualified Data.Aeson.Encode.Pretty as AEEP
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Set as DS
@@ -54,5 +55,10 @@ schemaUnifier = undefined
 someData :: AE.Value
 someData = AE.Object $ HM.fromList [("test", AE.String "hello"), ("again", AE.Object $ HM.fromList [("test", AE.String "hello"), ("again", AE.Number 14)])]
 
-someFunc :: IO ()
-someFunc = putStrLn $ AEEP.encodePretty $ AE.toJSON $ jsonToSchema someData
+executor :: IO ()
+executor = do
+    raw <- BS.readFile "./examples/sample.json"
+    let json = AE.decode $ BSL.fromStrict raw :: Maybe AE.Value
+    let prettySchemaize = AEEP.encodePretty . AE.toJSON . jsonToSchema
+
+    putStrLn $ maybe "" prettySchemaize json
