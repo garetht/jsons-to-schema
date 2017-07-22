@@ -68,12 +68,6 @@ schemaUnifier = undefined
 unifyMaximumMinimumConstraints :: Maybe DS.Scientific -> Maybe Bool -> Maybe DS.Scientific -> Maybe Bool -> (Maybe DS.Scientific, Maybe Bool)
 unifyMaximumMinimumConstraints = undefined
 
-computeMaximumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
-computeMaximumConstraints = Utils.computeConstraints maximumBy
-
-computeMinimumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
-computeMinimumConstraints = Utils.computeConstraints minimumBy
-
 unifyMaximumMinimum :: D4.Schema -> D4.Schema -> D4.Schema
 unifyMaximumMinimum nextSchema accSchema =
     let schemas = [nextSchema, accSchema]
@@ -81,8 +75,8 @@ unifyMaximumMinimum nextSchema accSchema =
         emaxes = fmap D4._schemaExclusiveMaximum schemas
         mins = fmap D4._schemaMinimum schemas
         emins = fmap D4._schemaExclusiveMinimum schemas
-        (maxConstraint, emaxConstraint) = computeMaximumConstraints maxes emaxes
-        (minConstraint, eminConstraint) = computeMinimumConstraints mins emins
+        (maxConstraint, emaxConstraint) = Utils.computeMaximumConstraints maxes emaxes
+        (minConstraint, eminConstraint) = Utils.computeMinimumConstraints mins emins
     in
         accSchema {
               D4._schemaMaximum = maxConstraint
