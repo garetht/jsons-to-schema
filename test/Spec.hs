@@ -7,10 +7,10 @@ import Protolude
 
 main :: IO ()
 main = hspec $ do
-    describe "Constraint Tests" constraintTests
+    describe "Constraint Tests" maximumConstraintTests
 
-constraintTests :: Spec
-constraintTests = do
+maximumConstraintTests :: Spec
+maximumConstraintTests = do
     it "will compute a maximum from some numbers" $
         computeMaximumConstraints
             [ Just $ scientific 20 1
@@ -48,4 +48,45 @@ constraintTests = do
             , Nothing] `shouldBe` (Nothing, Nothing)
 
 
+minimumConstraintTests :: Spec
+minimumConstraintTests = do
+    it "will compute a minimum from some numbers" $
+        computeMinimumConstraints
+            [ Just $ scientific 20 1
+            , Just $ scientific 30 1
+            , Nothing
+            , Nothing
+            , Just $ scientific 25 1]
+            [ Just True
+            , Just False
+            , Nothing
+            , Just True
+            , Just True
+            ] `shouldBe` (Just $ scientific 20 1, Just True)
+
+    it "will compute a minimum from the existence of an exclusive minimum when there is a tie" $
+        computeMinimumConstraints
+            [ Just $ scientific 59 1
+            , Nothing
+            , Just $ scientific 12 1
+            , Just $ scientific 14 1
+            , Just $ scientific 12 1
+            , Just $ scientific 59 1
+            , Nothing]
+            [ Just False
+            , Just True
+            , Just True
+            , Just True
+            , Just False
+            , Just False
+            , Just True] `shouldBe` (Just $ scientific 12 1, Just False)
+
+    it "will be able to return a sensible value when nothing is defined" $
+        computeMinimumConstraints
+            [ Nothing
+            , Nothing
+            , Nothing]
+            [ Nothing
+            , Nothing
+            , Nothing] `shouldBe` (Nothing, Nothing)
 

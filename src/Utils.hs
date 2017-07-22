@@ -37,10 +37,13 @@ andMaybe = emptyFold and . catMaybes
 orMaybe :: [Maybe Bool] -> Maybe Bool
 orMaybe = emptyFold or . catMaybes
 
+-- TODO: this function is not particularly general because of the
+-- random Down in the middle
 computeConstraints :: (Ord a, Ord b) => (((a, b) -> (a, b) -> Ordering) -> [(c, d)] -> e) -> [c] -> [d] -> e
 computeConstraints f bs cs = f zipComparer (zip bs cs)
     where
-        zipComparer (m1, em1) (m2, em2) = if m1 == m2 then compare (Down em1) (Down em2) else compare m1 m2
+        zipComparer (m1, em1) (m2, em2) =
+            if m1 == m2 then compare (Down em1) (Down em2) else compare m1 m2
 
 computeMaximumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
 computeMaximumConstraints = Utils.computeConstraints maximumBy
