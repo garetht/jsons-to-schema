@@ -2,19 +2,21 @@ module JSONSchema.SchemaConverter
     (jsonToSchema)
   where
 
-import Protolude
+import           Protolude
 
-import qualified Data.Aeson as AE
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.List.NonEmpty as NE
-import qualified Data.HashMap.Lazy as HM
-import qualified Data.Set as DS
-import qualified JSONSchema.Draft4 as D4
-import qualified Data.Vector as V
+import qualified Data.Aeson                        as AE
+import qualified Data.ByteString                   as BS
+import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.HashMap.Lazy                 as HM
+import qualified Data.List.NonEmpty                as NE
+import qualified Data.Set                          as DS
+import qualified Data.Vector                       as V
+import qualified JSONSchema.Draft4                 as D4
 
-import qualified JSONSchema.Validator.Draft4.Any as V4A
+import qualified JSONSchema.Validator.Draft4.Any   as V4A
 import qualified JSONSchema.Validator.Draft4.Array as V4Arr
+
+import qualified Utils
 
 makeBasicTypeSchema :: V4A.SchemaType -> D4.Schema
 makeBasicTypeSchema t =
@@ -47,5 +49,17 @@ jsonToSchema (AE.Array xs) = makeArrayAsTupleSchema xs
 unifySchemas :: [D4.Schema] -> D4.Schema
 unifySchemas = undefined
 
+-- If neither has a type, then just merge the two schemas together
+-- without any further thought
 schemaUnifier :: D4.Schema -> D4.Schema -> D4.Schema
-schemaUnifier nextSchema accSchema = undefined
+schemaUnifier nextSchema accSchema = D4.emptySchema {
+         D4._schemaMaxProperties = Utils.maxMaybe $ fmap D4._schemaMaxProperties schemas
+       , D4._schemaMinProperties = Utils.minMaybe $ fmap D4._schemaMinProperties schemas
+       , D4._schemaMaxItems = Utils.maxMaybe $ fmap D4._schemaMaxItems schemas
+       , D4._schemaMinItems = Utils.minMaybe $ fmap D4._schemaMinItems schemas
+       , D4._schemaMaximum = Utils.maxMaybe $ fmap D4._schemaMaximum schemas
+       , D4._schemaMinimum = Utils.minMaybe $ fmap D4._schemaMinimum schemas
+       , D4._schemaMaxLength = Utils.maxMaybe $ fmap D4._schemaMaxLength schemas
+       , D4._schemaMinLength = Utils.minMaybe $ fmap D4._schemaMinLength schemas
+    }
+    where schemas = [nextSchema, accSchema]
