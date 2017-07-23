@@ -1,13 +1,102 @@
-import Test.Hspec
-import Utils
-import Data.Scientific
+{-# LANGUAGE QuasiQuotes #-}
 
-import Protolude
+import           Data.Scientific
+import qualified JSONSchema.Draft4               as D4
+import           JSONSchema.SchemaConverter
+import qualified JSONSchema.Validator.Draft4.Any as V4A
+import           Test.Hspec
+import           Utils
+
+import           Protolude
+import  NeatInterpolation
+
+import qualified Data.Aeson as AE
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.Aeson.Encode.Pretty as AEEP
+
 
 
 main :: IO ()
 main = hspec $ do
-    describe "Constraint Tests" maximumConstraintTests
+    describe "Maximum Constraint Tests" maximumConstraintTests
+--     describe "Minimum Constraint Tests" minimumConstraintTests
+    describe "Schema Unifier Tests" schemaUnifierTests
+
+parseSchema :: Text -> D4.Schema
+parseSchema = fromMaybe (panic "Failed to parse schema") . AE.decode . BSL.fromStrict . TE.encodeUtf8
+
+printSchema :: D4.Schema -> BSL.ByteString
+printSchema = AEEP.encodePretty . AE.toJSON
+
+objectSchema1 =
+   [text|
+{
+  "type": "object",
+  "required": ["name", "team"],
+  "properties": {
+    "name": {
+      "type": "number",
+      "maximum": 202
+    },
+    "otherProp": {
+      "type": "string"
+    },
+    "team": {
+      "type": "number"
+    }
+  },
+  "maximum": 20
+}
+   |]
+
+objectSchema2 =
+   [text|
+{
+  "type": "object",
+  "required": ["alternative", "team"],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "alternative": {
+        "type": "boolean"
+    },
+    "team": {
+        "type": "number"
+    }
+  },
+  "maximum": 40
+}
+   |]
+
+objectSchema3 =
+   [text|
+{
+  "type": "number"
+}
+   |]
+
+objectSchema4 =
+   [text|
+{
+  "type": "string"
+}
+   |]
+
+
+schemaUnifierTests :: Spec
+schemaUnifierTests =
+    it "will be able to union two object schemas" $ do
+        let schema1 = parseSchema objectSchema1
+        let schema2 = parseSchema objectSchema2
+        let schema3 = parseSchema objectSchema3
+        let schema4 = parseSchema objectSchema4
+--         schema1 `shouldBe` D4.emptySchema
+        fmap printSchema (foldr1May unifySchemas [schema1, schema2, schema3, schema4]) `shouldBe` Just ""
+
+
 
 maximumConstraintTests :: Spec
 maximumConstraintTests = do

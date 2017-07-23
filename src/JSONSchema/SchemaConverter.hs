@@ -1,10 +1,8 @@
-{-# LANGUAGE ExistentialQuantification #-}
-
 module JSONSchema.SchemaConverter
-    (jsonToSchema)
+    (jsonToSchema, unifySchemas)
   where
 
-import           Protolude
+import           Protolude hiding ((<>))
 
 import qualified Data.Aeson                        as AE
 import qualified Data.ByteString                   as BS
@@ -20,6 +18,9 @@ import qualified JSONSchema.Validator.Draft4.Array as V4Arr
 
 import qualified Safe as S
 import qualified Data.Scientific as DS
+import Data.Semigroup ((<>), Semigroup)
+
+import Debug.Trace
 
 import qualified Utils
 
@@ -59,31 +60,17 @@ jsonToSchema (AE.Array xs) = makeArrayAsTupleSchema xs
  perform mutual recursion with arrays of objects.
 -}
 
-unifySchemas :: [D4.Schema] -> D4.Schema
-unifySchemas = undefined
+unifySchemas :: D4.Schema -> D4.Schema -> D4.Schema
+unifySchemas nextSchema =
+    unifyPropertiesConstraint nextSchema
+    . unifyRequiredConstraint nextSchema
+    . unifyTypeConstraint nextSchema
+    . unifyMaximumMinimumConstraints nextSchema
+    . unifySimpleConstraints nextSchema
 
-schemaUnifier :: D4.Schema -> D4.Schema -> D4.Schema
-schemaUnifier = undefined
 
-unifyMaximumMinimumConstraints :: Maybe DS.Scientific -> Maybe Bool -> Maybe DS.Scientific -> Maybe Bool -> (Maybe DS.Scientific, Maybe Bool)
-unifyMaximumMinimumConstraints = undefined
-
-unifyMaximumMinimum :: D4.Schema -> D4.Schema -> D4.Schema
-unifyMaximumMinimum nextSchema accSchema =
-    let schemas = [nextSchema, accSchema]
-        maxes = fmap D4._schemaMaximum schemas
-        emaxes = fmap D4._schemaExclusiveMaximum schemas
-        mins = fmap D4._schemaMinimum schemas
-        emins = fmap D4._schemaExclusiveMinimum schemas
-        (maxConstraint, emaxConstraint) = Utils.computeMaximumConstraints maxes emaxes
-        (minConstraint, eminConstraint) = Utils.computeMinimumConstraints mins emins
-    in
-        accSchema {
-              D4._schemaMaximum = maxConstraint
-            , D4._schemaExclusiveMaximum = emaxConstraint
-            , D4._schemaMinimum = minConstraint
-            , D4._schemaExclusiveMinimum = eminConstraint
-        }
+unifyMaybeList :: (Semigroup a) => [Maybe a] -> Maybe a
+unifyMaybeList = S.foldr1May (<>) . catMaybes
 
 -- Simple constraints are able to be enlarged without much complexity.
 -- For example, if we have a schema with maximum 10 and a schema with maximum 20
@@ -100,10 +87,46 @@ unifySimpleConstraints nextSchema accSchema = accSchema {
     }
     where schemas = [nextSchema, accSchema]
 
+-- We have no means of merging certain constraints that can only have
+-- one opaque value (e.g. version) so we just pick one of them
+-- unifyUniqueConstraints ::  D4.Schema -> D4.Schema -> D4.Schema
+-- unifyUniqueConstraints nextSchema accSchema = accSchema {
+--           D4._schemaVersion = listToMaybe . catMaybes $ fmap D4._schemaVersion schemas
+--     }
+--     where schemas = [nextSchema, accSchema]
 
--- Things to do
--- merge simple types
--- merge complex types
--- merge incoming schemas into any type
--- we specify that an anyOf array will be unique according to the `type` restriction
--- so an incoming schema is merged into at most one element of the anyOf
+unifyMaximumMinimumConstraints :: D4.Schema -> D4.Schema -> D4.Schema
+unifyMaximumMinimumConstraints nextSchema accSchema =
+    let schemas = [nextSchema, accSchema]
+        maxes = fmap D4._schemaMaximum schemas
+        emaxes = fmap D4._schemaExclusiveMaximum schemas
+        mins = fmap D4._schemaMinimum schemas
+        emins = fmap D4._schemaExclusiveMinimum schemas
+        (maxConstraint, emaxConstraint) = Utils.computeMaximumConstraints maxes emaxes
+        (minConstraint, eminConstraint) = Utils.computeMinimumConstraints mins emins
+    in
+        accSchema {
+              D4._schemaMaximum = maxConstraint
+            , D4._schemaExclusiveMaximum = emaxConstraint
+            , D4._schemaMinimum = minConstraint
+            , D4._schemaExclusiveMinimum = eminConstraint
+        }
+
+unifyTypeConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyTypeConstraint nextSchema accSchema = accSchema {
+        D4._schemaType =  S.foldr1May (<>) . catMaybes $ fmap D4._schemaType [nextSchema, accSchema]
+    }
+
+-- This should be set difference
+unifyRequiredConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyRequiredConstraint nextSchema accSchema = accSchema {
+        D4._schemaRequired = S.foldr1May DS.intersection . catMaybes $ fmap D4._schemaRequired [nextSchema, accSchema]
+    }
+
+unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyPropertiesConstraint nextSchema accSchema = accSchema {
+        D4._schemaProperties = unifyProperties $ fmap D4._schemaProperties [nextSchema, accSchema]
+    }
+    where
+        unifyProperties :: [Maybe (HM.HashMap Text D4.Schema)] -> Maybe (HM.HashMap Text D4.Schema)
+        unifyProperties = S.foldr1May (HM.unionWith unifySchemas) . catMaybes
