@@ -7,22 +7,23 @@ import qualified JSONSchema.Validator.Draft4.Any as V4A
 import           Test.Hspec
 import           Utils
 
+import           NeatInterpolation
 import           Protolude
-import  NeatInterpolation
 
-import qualified Data.Aeson as AE
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Aeson.Encode.Pretty as AEEP
+import qualified Data.Aeson                      as AE
+import qualified Data.Aeson.Encode.Pretty        as AEEP
+import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.Text                       as T
+import qualified Data.Text.Encoding              as TE
 
-
+import JSONSchema.SchemaConverter.Tests
 
 main :: IO ()
 main = hspec $ do
     describe "Maximum Constraint Tests" maximumConstraintTests
     describe "Minimum Constraint Tests" minimumConstraintTests
-    describe "Schema Unifier Tests" schemaUnifierTests
+--     describe "Schema Unifier Tests" schemaUnifierTests
+    describe "Simple Extenrnal Test" simpleExternalTest
 
 parseSchema :: Text -> D4.Schema
 parseSchema = fromMaybe (panic "Failed to parse schema") . AE.decode . BSL.fromStrict . TE.encodeUtf8

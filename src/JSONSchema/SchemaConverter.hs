@@ -1,5 +1,7 @@
 module JSONSchema.SchemaConverter
   ( jsonToSchema
+  , jsonsToSchema
+  , schemasToSchema
   , unifySchemas
   ) where
 
@@ -53,12 +55,6 @@ makeArrayAsSingleSchema xs =
       Just $ V4Arr.ItemsObject $ fromMaybe D4.emptySchema $ jsonsToSchema xs
   }
 
-schemasToSchema :: (Foldable f, Functor f) => f D4.Schema -> Maybe D4.Schema
-schemasToSchema = SF.foldr1May unifySchemas
-
-jsonsToSchema :: (Foldable f, Functor f) => f AE.Value -> Maybe D4.Schema
-jsonsToSchema = schemasToSchema . fmap jsonToSchema
-
 jsonToSchema :: AE.Value -> D4.Schema
 jsonToSchema (AE.Number n) = makeBasicTypeSchema V4A.SchemaNumber
 jsonToSchema (AE.String s) = makeBasicTypeSchema V4A.SchemaString
@@ -66,3 +62,9 @@ jsonToSchema (AE.Bool s)   = makeBasicTypeSchema V4A.SchemaBoolean
 jsonToSchema AE.Null       = makeBasicTypeSchema V4A.SchemaNull
 jsonToSchema (AE.Object o) = makeObjectSchema o
 jsonToSchema (AE.Array xs) = makeArrayAsSingleSchema xs
+
+schemasToSchema :: (Foldable f, Functor f) => f D4.Schema -> Maybe D4.Schema
+schemasToSchema = SF.foldr1May unifySchemas
+
+jsonsToSchema :: (Foldable f, Functor f) => f AE.Value -> Maybe D4.Schema
+jsonsToSchema = schemasToSchema . fmap jsonToSchema

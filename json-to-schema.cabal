@@ -49,10 +49,13 @@ executable json-to-schema-exe
 test-suite json-to-schema-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
+  other-modules:       JSONSchema.SchemaConverter.Tests
+                     , TestUtils
   main-is:             Spec.hs
   default-extensions:
     OverloadedStrings
     NoImplicitPrelude
+    QuasiQuotes
   build-depends:       base
                      , json-to-schema
                      , hspec
