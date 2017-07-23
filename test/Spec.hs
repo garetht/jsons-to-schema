@@ -179,3 +179,6 @@ minimumConstraintTests = do
             , Nothing
             , Nothing] `shouldBe` (Nothing, Nothing)
 
+
+-- Test: unifying with the empty schema is the identity function
+-- in either order

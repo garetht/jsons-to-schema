@@ -15,6 +15,7 @@ import qualified JSONSchema.Draft4                 as D4
 
 import qualified JSONSchema.Validator.Draft4.Any   as V4A
 import qualified JSONSchema.Validator.Draft4.Array as V4Arr
+import qualified JSONSchema.Validator.Draft4.Object as V4Obj
 
 import qualified Safe as S
 import qualified Data.Scientific as DS
@@ -62,7 +63,8 @@ jsonToSchema (AE.Array xs) = makeArrayAsTupleSchema xs
 
 unifySchemas :: D4.Schema -> D4.Schema -> D4.Schema
 unifySchemas nextSchema =
-    unifyPropertiesConstraint nextSchema
+    unifyItemsConstraint nextSchema
+    . unifyPropertiesConstraint nextSchema
     . unifyRequiredConstraint nextSchema
     . unifyTypeConstraint nextSchema
     . unifyMaximumMinimumConstraints nextSchema
@@ -73,7 +75,7 @@ unifySchemas nextSchema =
 -- to only the Just values. We then use foldr1May to fold across the
 -- list.. If there were no Just values, then
 -- the foldr1 fails and we get Nothing. Otherwise, the present Just
--- values are folded together using the list.
+-- values are folded together using foldF.
 linearUnifier :: (a -> a -> a) -> (b -> Maybe a) -> [b] -> Maybe a
 linearUnifier foldF getter xs = S.foldr1May foldF . catMaybes $ fmap getter xs
 
@@ -88,7 +90,7 @@ unifySimpleConstraints nextSchema accSchema = accSchema {
        , D4._schemaMinItems = linearUnifier min D4._schemaMinItems schemas
        , D4._schemaMaxLength = linearUnifier max D4._schemaMaxLength schemas
        , D4._schemaMinLength = linearUnifier min D4._schemaMinLength schemas
-       , D4._schemaUniqueItems = Utils.andMaybe $ fmap D4._schemaUniqueItems schemas
+       , D4._schemaUniqueItems = linearUnifier (&&) D4._schemaUniqueItems schemas
     }
     where schemas = [nextSchema, accSchema]
 
@@ -122,7 +124,6 @@ unifyTypeConstraint nextSchema accSchema = accSchema {
         D4._schemaType =  linearUnifier (<>) D4._schemaType [nextSchema, accSchema]
     }
 
--- This should be set difference
 unifyRequiredConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyRequiredConstraint nextSchema accSchema = accSchema {
         D4._schemaRequired = linearUnifier DS.intersection D4._schemaRequired [nextSchema, accSchema]
@@ -132,3 +133,37 @@ unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyPropertiesConstraint nextSchema accSchema = accSchema {
         D4._schemaProperties = linearUnifier (HM.unionWith unifySchemas) D4._schemaProperties [nextSchema, accSchema]
     }
+
+unifyAdditionalPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyAdditionalPropertiesConstraint nextSchema accSchema = accSchema {
+        D4._schemaAdditionalProperties = linearUnifier unifyAdditionalProperties D4._schemaAdditionalProperties [nextSchema, accSchema]
+    }
+    where unifyAdditionalProperties :: V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema
+          unifyAdditionalProperties (V4Obj.AdditionalPropertiesBool b1) (V4Obj.AdditionalPropertiesBool b2) = V4Obj.AdditionalPropertiesBool $ b1 || b2
+          -- allowing additional objects (True) is always at least as permissive as any schema
+          -- all schemas are at least as permissive as not allowing any additional objects (False)
+          unifyAdditionalProperties bool@(V4Obj.AdditionalPropertiesBool b) obj@(V4Obj.AdditionalPropertiesObject s) = if b then bool else obj
+          unifyAdditionalProperties obj@(V4Obj.AdditionalPropertiesObject s) bool@(V4Obj.AdditionalPropertiesBool b) = if b then bool else obj
+          unifyAdditionalProperties (V4Obj.AdditionalPropertiesObject o1) (V4Obj.AdditionalPropertiesObject o2) = V4Obj.AdditionalPropertiesObject $ unifySchemas o1 o2
+
+unifyItemsConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyItemsConstraint nextSchema accSchema = accSchema {
+        D4._schemaItems = linearUnifier unifyItems D4._schemaItems [nextSchema, accSchema]
+    }
+    where unifyItems :: V4Arr.Items D4.Schema -> V4Arr.Items D4.Schema -> V4Arr.Items D4.Schema
+          unifyItems (V4Arr.ItemsObject o1) (V4Arr.ItemsObject o2) = V4Arr.ItemsObject $ unifySchemas o1 o2
+          unifyItems (V4Arr.ItemsArray xs) (V4Arr.ItemsArray ys) =
+            V4Arr.ItemsArray $ fmap (uncurry unifySchemas) (Utils.zipWithPadding D4.emptySchema D4.emptySchema xs ys)
+          unifyItems x y = x -- possibly: merge the object schema into each of the tuple schemas? (zip (repeat o1) xs)
+
+unifyAdditionalItemsConstraint :: D4.Schema -> D4.Schema -> D4.Schema
+unifyAdditionalItemsConstraint nextSchema accSchema = accSchema {
+        D4._schemaAdditionalItems = linearUnifier unifyAdditionalItems D4._schemaAdditionalItems [nextSchema, accSchema]
+    }
+    where unifyAdditionalItems :: V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema
+          unifyAdditionalItems (V4Arr.AdditionalBool b1) (V4Arr.AdditionalBool b2) = V4Arr.AdditionalBool $ b1 || b2
+          -- allowing additional objects (True) is always at least as permissive as any schema
+          -- all schemas are at least as permissive as not allowing any additional objects (False)
+          unifyAdditionalItems bool@(V4Arr.AdditionalBool b) obj@(V4Arr.AdditionalObject s) = if b then bool else obj
+          unifyAdditionalItems obj@(V4Arr.AdditionalObject s) bool@(V4Arr.AdditionalBool b) = if b then bool else obj
+          unifyAdditionalItems (V4Arr.AdditionalObject o1) (V4Arr.AdditionalObject o2) = V4Arr.AdditionalObject $ unifySchemas o1 o2

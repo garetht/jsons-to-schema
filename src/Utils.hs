@@ -1,9 +1,14 @@
 module Utils
   (altMaybe, andMaybe,
-  computeMaximumConstraints, computeMinimumConstraints)
+  computeMaximumConstraints, computeMinimumConstraints,
+  zipWithPadding)
   where
 
 import Protolude
+
+import Control.Applicative
+import Data.Traversable
+import Data.List
 
 import qualified Safe as S
 import qualified Data.Scientific as DS
@@ -29,14 +34,6 @@ andMaybe = emptyFold and . catMaybes
 
 orMaybe :: [Maybe Bool] -> Maybe Bool
 orMaybe = emptyFold or . catMaybes
-
--- TODO: this function is not particularly general because of the
--- random Down in the middle
-computeConstraints :: (Ord a, Ord b) => (((a, b) -> (a, b) -> Ordering) -> [(c, d)] -> e) -> [c] -> [d] -> e
-computeConstraints f bs cs = f zipComparer (zip bs cs)
-    where
-        zipComparer (m1, em1) (m2, em2) =
-            if m1 == m2 then compare (Down em1) (Down em2) else compare m1 m2
 
 computeMaximumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
 computeMaximumConstraints maxes emaxes = maximumBy zipComparer (zip maxes emaxes)
@@ -64,3 +61,7 @@ computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
             -- We don't need Down here because the comparison is already taking the minimum
             if m1 == m2 then compare em1 em2 else justComparer m1 m2
 
+zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
+zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
+zipWithPadding a _ []     ys     = zip (repeat a) ys
+zipWithPadding _ b xs     []     = zip xs (repeat b)
