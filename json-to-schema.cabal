@@ -20,6 +20,7 @@ library
     NoImplicitPrelude
   exposed-modules:     Lib
                      , JSONSchema.SchemaConverter
+                     , JSONSchema.Unifiers
                      , Utils
   build-depends:       base >= 4.7 && < 5
                      , hjsonschema
