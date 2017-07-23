@@ -21,7 +21,7 @@ import qualified Data.Aeson.Encode.Pretty as AEEP
 main :: IO ()
 main = hspec $ do
     describe "Maximum Constraint Tests" maximumConstraintTests
---     describe "Minimum Constraint Tests" minimumConstraintTests
+    describe "Minimum Constraint Tests" minimumConstraintTests
     describe "Schema Unifier Tests" schemaUnifierTests
 
 parseSchema :: Text -> D4.Schema

@@ -1,5 +1,5 @@
 module Utils
-  (altMaybe, maxMaybe, minMaybe, andMaybe,
+  (altMaybe, andMaybe,
   computeMaximumConstraints, computeMinimumConstraints)
   where
 
@@ -14,13 +14,6 @@ import qualified Data.Scientific as DS
 -- both are nothing
 altMaybe :: (a -> a -> a) -> Maybe a -> Maybe a -> Maybe a
 altMaybe f a b = f <$> a <*> b <|> a <|> b
-
--- Returns the maximum of the Just values or Nothing if there are no Justs
-maxMaybe :: (Ord a) => [Maybe a] -> Maybe a
-maxMaybe = S.maximumMay . catMaybes
-
-minMaybe :: (Ord a) => [Maybe a] -> Maybe a
-minMaybe = S.minimumMay . catMaybes
 
 
 -- Make certain functions return Nothing when handed an empty list instead
@@ -46,7 +39,28 @@ computeConstraints f bs cs = f zipComparer (zip bs cs)
             if m1 == m2 then compare (Down em1) (Down em2) else compare m1 m2
 
 computeMaximumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
-computeMaximumConstraints = Utils.computeConstraints maximumBy
+computeMaximumConstraints maxes emaxes = maximumBy zipComparer (zip maxes emaxes)
+    -- We use Down to reverse the compare order so that False > True
+    -- We need False > True because if two schemas have the same maximum
+    -- but one excludes the maximum then we want the schema to not exclude the
+    -- maximum (i.e. it is more inclusive)
+    where
+        zipComparer (m1, em1) (m2, em2) =
+            if m1 == m2 then compare (Down em1) (Down em2) else compare m1 m2
 
+-- Usually the ordering goes like this: Nothing < Just 20 < Just 30, and so the
+-- minimum is Nothing. But we want the ordering to be Just 20 < Just 30 < Nothing
+-- (Down would provide the ordering Just 30 < Just 20 < Nothing), so we provide
+-- a custom comparison function
 computeMinimumConstraints :: [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
-computeMinimumConstraints = Utils.computeConstraints minimumBy
+computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
+    where
+        justComparer :: (Ord a) => Maybe a -> Maybe a -> Ordering
+        justComparer (Just x) (Just y) = compare x y
+        justComparer (Just _) Nothing = LT
+        justComparer Nothing (Just _) = GT
+        justComparer Nothing Nothing = EQ
+        zipComparer (m1, em1) (m2, em2) =
+            -- We don't need Down here because the comparison is already taking the minimum
+            if m1 == m2 then compare em1 em2 else justComparer m1 m2
+

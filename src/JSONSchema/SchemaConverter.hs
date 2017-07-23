@@ -69,20 +69,25 @@ unifySchemas nextSchema =
     . unifySimpleConstraints nextSchema
 
 
-unifyMaybeList :: (Semigroup a) => [Maybe a] -> Maybe a
-unifyMaybeList = S.foldr1May (<>) . catMaybes
+-- The linear unifier extracts an array of Maybes and filters them
+-- to only the Just values. We then use foldr1May to fold across the
+-- list.. If there were no Just values, then
+-- the foldr1 fails and we get Nothing. Otherwise, the present Just
+-- values are folded together using the list.
+linearUnifier :: (a -> a -> a) -> (b -> Maybe a) -> [b] -> Maybe a
+linearUnifier foldF getter xs = S.foldr1May foldF . catMaybes $ fmap getter xs
 
 -- Simple constraints are able to be enlarged without much complexity.
 -- For example, if we have a schema with maximum 10 and a schema with maximum 20
 -- the merged schema will have a maximum of 20.
 unifySimpleConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifySimpleConstraints nextSchema accSchema = accSchema {
-         D4._schemaMaxProperties = Utils.maxMaybe $ fmap D4._schemaMaxProperties schemas
-       , D4._schemaMinProperties = Utils.minMaybe $ fmap D4._schemaMinProperties schemas
-       , D4._schemaMaxItems = Utils.maxMaybe $ fmap D4._schemaMaxItems schemas
-       , D4._schemaMinItems = Utils.minMaybe $ fmap D4._schemaMinItems schemas
-       , D4._schemaMaxLength = Utils.maxMaybe $ fmap D4._schemaMaxLength schemas
-       , D4._schemaMinLength = Utils.minMaybe $ fmap D4._schemaMinLength schemas
+         D4._schemaMaxProperties = linearUnifier max D4._schemaMaxProperties schemas
+       , D4._schemaMinProperties = linearUnifier min D4._schemaMinProperties schemas
+       , D4._schemaMaxItems = linearUnifier max D4._schemaMaxItems schemas
+       , D4._schemaMinItems = linearUnifier min D4._schemaMinItems schemas
+       , D4._schemaMaxLength = linearUnifier max D4._schemaMaxLength schemas
+       , D4._schemaMinLength = linearUnifier min D4._schemaMinLength schemas
        , D4._schemaUniqueItems = Utils.andMaybe $ fmap D4._schemaUniqueItems schemas
     }
     where schemas = [nextSchema, accSchema]
@@ -114,19 +119,16 @@ unifyMaximumMinimumConstraints nextSchema accSchema =
 
 unifyTypeConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyTypeConstraint nextSchema accSchema = accSchema {
-        D4._schemaType =  S.foldr1May (<>) . catMaybes $ fmap D4._schemaType [nextSchema, accSchema]
+        D4._schemaType =  linearUnifier (<>) D4._schemaType [nextSchema, accSchema]
     }
 
 -- This should be set difference
 unifyRequiredConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyRequiredConstraint nextSchema accSchema = accSchema {
-        D4._schemaRequired = S.foldr1May DS.intersection . catMaybes $ fmap D4._schemaRequired [nextSchema, accSchema]
+        D4._schemaRequired = linearUnifier DS.intersection D4._schemaRequired [nextSchema, accSchema]
     }
 
 unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyPropertiesConstraint nextSchema accSchema = accSchema {
-        D4._schemaProperties = unifyProperties $ fmap D4._schemaProperties [nextSchema, accSchema]
+        D4._schemaProperties = linearUnifier (HM.unionWith unifySchemas) D4._schemaProperties [nextSchema, accSchema]
     }
-    where
-        unifyProperties :: [Maybe (HM.HashMap Text D4.Schema)] -> Maybe (HM.HashMap Text D4.Schema)
-        unifyProperties = S.foldr1May (HM.unionWith unifySchemas) . catMaybes
