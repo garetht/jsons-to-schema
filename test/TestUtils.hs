@@ -1,6 +1,7 @@
 module TestUtils
   ( testJsonToSchema
   , testJsonsToSchema
+  , testJsonsToSchemaPretty
   ) where
 
 import Protolude
@@ -10,6 +11,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified JSONSchema.Draft4 as D4
+import qualified Data.Aeson.Encode.Pretty        as AEEP
 
 import JSONSchema.SchemaConverter
 import Test.Hspec
@@ -20,6 +22,9 @@ parseSchema :: Text -> D4.Schema
 parseSchema =
   fromMaybe (panic "Failed to parse schema") .
   AE.decode . BSL.fromStrict . TE.encodeUtf8
+
+printSchema :: D4.Schema -> BSL.ByteString
+printSchema = AEEP.encodePretty . AE.toJSON
 
 parseJson :: Text -> AE.Value
 parseJson json =
@@ -37,3 +42,10 @@ testJsonsToSchema jsonTexts expectedSchema =
     (panic "Could not unify multiple schemas")
     (jsonsToSchema $ fmap parseJson jsonTexts) `shouldBe`
   parseSchema expectedSchema
+
+testJsonsToSchemaPretty :: [Text] -> Text -> IO ()
+testJsonsToSchemaPretty jsonTexts expectedSchema =
+  fromMaybe
+    (panic "Could not unify multiple schemas")
+    (fmap printSchema $ jsonsToSchema $ fmap parseJson jsonTexts) `shouldBe`
+  printSchema (parseSchema expectedSchema)

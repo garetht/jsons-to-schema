@@ -56,7 +56,7 @@ makeArrayAsSingleSchema xs =
   }
 
 jsonToSchema :: AE.Value -> D4.Schema
-jsonToSchema (AE.Number n) = makeBasicTypeSchema V4A.SchemaNumber
+jsonToSchema (AE.Number n) = makeBasicTypeSchema (if DS.isInteger n then V4A.SchemaInteger else V4A.SchemaNumber)
 jsonToSchema (AE.String s) = makeBasicTypeSchema V4A.SchemaString
 jsonToSchema (AE.Bool s)   = makeBasicTypeSchema V4A.SchemaBoolean
 jsonToSchema AE.Null       = makeBasicTypeSchema V4A.SchemaNull
