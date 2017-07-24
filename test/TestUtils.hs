@@ -4,6 +4,7 @@ module TestUtils
   , testJsonsToSchemaWithConfig
   , testJsonsToSchemaPretty
   , testJsonsToSchemaPrettyWithConfig
+  , shouldNotValidate
   ) where
 
 import Protolude
@@ -37,6 +38,15 @@ parseJson json =
    AE.decode . BSL.fromStrict . TE.encodeUtf8)
     json
 
+shouldNotValidate :: Text -> [Text] -> IO ()
+shouldNotValidate expectedSchema jsonTexts = do
+  let jsonInstances = fmap parseJson jsonTexts
+  let validatableSchema = D4.SchemaWithURI (parseSchema expectedSchema) Nothing
+  results <- sequence $ fmap (D4.fetchFilesystemAndValidate validatableSchema) jsonInstances
+
+  all isLeft results `shouldBe` True
+
+
 testJsonToSchema :: Text -> Text -> IO ()
 testJsonToSchema jsonText = testJsonsToSchema [jsonText]
 
@@ -54,11 +64,10 @@ testJsonsToSchemaWithConfig c jsonTexts expectedSchema = do
   let validatableSchema = D4.SchemaWithURI computedSchema Nothing
   results <- sequence $ fmap (D4.fetchFilesystemAndValidate validatableSchema) jsonInstances
 
-  all isRight results `shouldBe` True
+  results `shouldBe` replicate (length jsonInstances) (Right ())
 
 testJsonsToSchema :: [Text] -> Text -> IO ()
 testJsonsToSchema = testJsonsToSchemaWithConfig defaultSchemaGenerationConfig
-
 
 testJsonsToSchemaPrettyWithConfig :: SchemaGenerationConfig -> [Text] -> Text -> IO ()
 testJsonsToSchemaPrettyWithConfig c jsonTexts expectedSchema =

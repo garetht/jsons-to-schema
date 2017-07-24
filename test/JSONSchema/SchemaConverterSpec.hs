@@ -17,7 +17,6 @@ sealedObjectPropertiesConfig = defaultSchemaGenerationConfig {
   sealObjectProperties = True
 }
 
-
 -- These tests are helpfully borrowed from Python's GenSON
 -- https://github.com/wolverdude/GenSON
 testBasicTypesSingleStringInstance :: Spec
@@ -163,9 +162,9 @@ testSingleTupleArrayEmpty = it "can generate the schema for a single positionall
         testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
 
 testSingleTupleArrayMultitype :: Spec
-testSingleTupleArrayMultitype = it "can generate the schema for a single positionally typed tuple array with different types at different positions" $
+testSingleTupleArrayMultitype = it "can generate the schema for a single positionally typed tuple array with different types at different positions" $ do
     let j1 = [text| [1, "2", "3", null, false] |]
-        expected = [text|
+    let expected = [text|
             {
                 "type": "array",
                 "items": [
@@ -176,8 +175,9 @@ testSingleTupleArrayMultitype = it "can generate the schema for a single positio
                     {"type": "boolean"}]
             }
         |]
-    in
-        testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
+    let invalid1 = [text| [1, 2, "3", null, false] |]
+    testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
+    expected `shouldNotValidate` [invalid1]
 
 testSingleTupleArrayNested :: Spec
 testSingleTupleArrayNested = it "can generate the schema for a single positionally typed tuple array that is quite nested" $
@@ -497,22 +497,23 @@ testTupleArraysEmpty = it "can generate the schema for multiple tuple typed arra
         testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1, j2] expected
 
 testTupleArraysMultitype :: Spec
-testTupleArraysMultitype = it "can generate the schema for multiple tuple typed arrays that have different types in each position" $
-    let j1 = [text| [1, "2", "3", null, false] |]
-        j2 = [text| [1, 2, "3", false] |]
-        expected = [text|
-            {
-              "type": "array",
-              "items": [
-                  {"type": "integer"},
-                  {"type": ["integer", "string"]},
-                  {"type": "string"},
-                  {"type": ["boolean", "null"]},
-                  {"type": "boolean"}]
-            }
-        |]
-    in
-        testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1, j2] expected
+testTupleArraysMultitype = it "can generate the schema for multiple tuple typed arrays that have different types in each position" $ do
+      let j1 = [text| [1, "2", "3", null, false] |]
+      let j2 = [text| [1, 2, "3", false] |]
+      let expected = [text|
+              {
+                "type": "array",
+                "items": [
+                    {"type": "integer"},
+                    {"type": ["integer", "string"]},
+                    {"type": "string"},
+                    {"type": ["boolean", "null"]},
+                    {"type": "boolean"}]
+              }
+          |]
+      let invalid1 = [text| [1, 2, 3, null, false] |]
+      testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1, j2] expected
+      expected `shouldNotValidate` [invalid1]
 
 testTupleArraysNested :: Spec
 testTupleArraysNested = it "can generate the schema for multiple tuple typed arrays that are nested" $

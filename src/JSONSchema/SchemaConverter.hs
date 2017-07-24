@@ -48,7 +48,7 @@ makeObjectSchema c o =
     requireds = fmap DS.fromList . Utils.listToMaybeList . HM.keys
     properties :: HM.HashMap Text AE.Value -> Maybe (HM.HashMap Text D4.Schema)
     properties = Just . map (jsonToSchemaWithConfig c)
-    -- Make objects unable to accept additional properties if we say so
+    -- Make objects unable to accept additional properties if specified by the user
     additionalProperties = if sealObjectProperties c
       then Just $ V4Obj.AdditionalPropertiesBool False
       else Nothing
