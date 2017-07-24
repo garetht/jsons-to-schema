@@ -110,7 +110,7 @@ testSingleNonTupleArrayMonotype = it "can generate the schema for a single non-t
 
 testSingleNonTupleArrayMultitype :: Spec
 testSingleNonTupleArrayMultitype = it "can generate the schema for a single non-tuple typed array of multiple different types" $
-    let j1 = [text| [1, "2", None, False] |]
+    let j1 = [text| [1, "2", null, false] |]
         expected = [text|
           {
               "type": "array",
@@ -142,6 +142,112 @@ testSingleNonTupleArrayNested = it "can generate the schema for a single non-tup
         |]
     in
         testJsonsToSchema [j1] expected
+
+testSingleEmptyObject :: Spec
+testSingleEmptyObject = it "can generate the schema for a single empty object" $
+    let j1 = [text| {} |]
+        expected = [text| {"type": "object", "properties": {}} |]
+    in
+        testJsonsToSchemaPretty [j1] expected
+
+testSingleBasicObject :: Spec
+testSingleBasicObject = it "can generate the schema for a single basic object" $
+    let j1 = [text| {
+                      "Red Windsor": "Normally, but today the van broke down.",
+                      "Stilton": "Sorry.",
+                      "Gruyere": false
+                    } |]
+        expected = [text| {
+                            "required": ["Gruyere", "Red Windsor", "Stilton"],
+                            "type": "object",
+                            "properties": {
+                                "Red Windsor": {"type": "string"},
+                                "Gruyere": {"type": "boolean"},
+                                "Stilton": {"type": "string"}
+                            }
+                          } |]
+    in
+        testJsonsToSchema [j1] expected
+
+testComplexArrayInObject :: Spec
+testComplexArrayInObject = it "can generate the schema for arrays that are in objects" $
+    let j1 = [text| {"a": "b", "c": [1, 2, 3]} |]
+        expected = [text| {
+                            "required": ["a", "c"],
+                            "type": "object",
+                            "properties": {
+                                "a": {"type": "string"},
+                                "c": {
+                                    "type": "array",
+                                    "items": {"type": "integer"}
+                                }
+                            }
+                          }
+                    |]
+    in
+        testJsonsToSchemaPretty [j1] expected
+
+testComplexObjectInArray :: Spec
+testComplexObjectInArray = it "can generate the schema for objects that are in arrays" $
+    let j1 = [text| [
+                      {"name": "Sir Lancelot of Camelot",
+                       "quest": "to seek the Holy Grail",
+                       "favorite colour": "blue"},
+                      {"name": "Sir Robin of Camelot",
+                       "quest": "to seek the Holy Grail",
+                       "capitol of Assyria": null
+                       }]
+             |]
+        expected = [text| {
+                              "type": "array",
+                              "items": {
+                                  "type": "object",
+                                  "required": ["name", "quest"],
+                                  "properties": {
+                                      "quest": {"type": "string"},
+                                      "name": {"type": "string"},
+                                      "favorite colour": {"type": "string"},
+                                      "capitol of Assyria": {"type": "null"}
+                                  }
+                              }
+                          }
+                    |]
+    in
+        testJsonsToSchemaPretty [j1] expected
+
+testComplexThreeDeepObject :: Spec
+testComplexThreeDeepObject = it "can generate the schema for a single empty object" $
+    let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
+        expected = [text| {
+                            "type": "object",
+                            "required": ["matryoshka"],
+                            "properties": {
+                                "matryoshka": {
+                                    "type": "object",
+                                    "required": ["design"],
+                                    "properties": {
+                                        "design": {
+                                            "type": "object",
+                                            "required": ["principle"],
+                                            "properties": {
+                                                "principle": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    |]
+    in
+        testJsonsToSchemaPretty [j1] expected
+
+testMultipleEmptyObjects :: Spec
+testMultipleEmptyObjects = it "can generate the schema for multiple empty objects" $
+    let j1 = [text| {} |]
+        j2 = [text| {} |]
+        expected = [text| {"type": "object", "properties": {}} |]
+    in
+        testJsonsToSchema [j1, j2] expected
 
 testNonTupleArrayEmpty :: Spec
 testNonTupleArrayEmpty = it "can generate the schema for multiple non-tuple typed arrays" $
@@ -218,25 +324,40 @@ testNonTupleArrayNested = it "can generate the schema for multiple non-tuple typ
         testJsonsToSchema [j1, j2] expected
 
 
-
 spec :: Spec
 spec = do
     describe "Single Instances of Basic Types" $ do
-        testBasicTypesSingleStringInstance
-        testBasicTypesSingleIntegerInstance
-        testBasicTypesSingleNumberInstance
-        testBasicTypesSingleBooleanInstance
-        testBasicTypesSingleNullInstance
+      testBasicTypesSingleStringInstance
+      testBasicTypesSingleIntegerInstance
+      testBasicTypesSingleNumberInstance
+      testBasicTypesSingleBooleanInstance
+      testBasicTypesSingleNullInstance
 
---     describe "Single Instances of the Non-Tuple Array Type"
+    describe "Single Instances of the Non-Tuple Array Type" $ do
+      testSingleNonTupleArrayEmpty
+      testSingleNonTupleArrayMonotype
+      testSingleNonTupleArrayMultitype
+      testSingleNonTupleArrayNested
+
+    describe "Single Instances of Object Types" $ do
+      testSingleEmptyObject
+      testSingleBasicObject
+
+    describe "Single Instances of More Complex Types" $ do
+      testComplexArrayInObject
+      testComplexObjectInArray
+      testComplexThreeDeepObject
 
     describe "Combining Multiple Instances of Basic Types" $ do
-        testBasicTypesSingleType
-        testBasicTypesMultipleType
-        testBasicTypesIntegerType
+      testBasicTypesSingleType
+      testBasicTypesMultipleType
+      testBasicTypesIntegerType
 
     describe "Combining Multiple Instances of the Non-Tuple Array Type" $ do
-         testNonTupleArrayEmpty
-         testNonTupleArrayMonotype
-         testNonTupleArrayMultitype
-         testNonTupleArrayNested
+      testNonTupleArrayEmpty
+      testNonTupleArrayMonotype
+      testNonTupleArrayMultitype
+      testNonTupleArrayNested
+
+    describe "Combining Multiple Instances of Object Types"
+      testMultipleEmptyObjects

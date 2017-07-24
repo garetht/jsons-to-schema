@@ -1,7 +1,7 @@
 module Utils
   (altMaybe, andMaybe,
   computeMaximumConstraints, computeMinimumConstraints,
-  zipWithPadding)
+  zipWithPadding, listToMaybeList)
   where
 
 import Protolude
@@ -65,3 +65,7 @@ zipWithPadding :: a -> b -> [a] -> [b] -> [(a,b)]
 zipWithPadding a b (x:xs) (y:ys) = (x,y) : zipWithPadding a b xs ys
 zipWithPadding a _ []     ys     = zip (repeat a) ys
 zipWithPadding _ b xs     []     = zip xs (repeat b)
+
+listToMaybeList :: [a] -> Maybe [a]
+listToMaybeList [] = Nothing
+listToMaybeList xs = Just xs

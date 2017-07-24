@@ -37,9 +37,9 @@ makeObjectSchema o =
     D4._schemaRequired = requireds o,
     D4._schemaProperties = properties o
   }
-    -- All keys encountered when there is just a single object are required
   where
-    requireds = Just . DS.fromList . HM.keys
+    -- We add the required property only if the object has any keys
+    requireds = fmap DS.fromList . Utils.listToMaybeList . HM.keys
     properties = Just . map jsonToSchema
 
 makeArrayAsTupleSchema :: AE.Array -> D4.Schema
