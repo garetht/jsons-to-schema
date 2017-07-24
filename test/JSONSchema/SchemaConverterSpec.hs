@@ -2,6 +2,7 @@
 
 module JSONSchema.SchemaConverterSpec where
 
+import           JSONSchema.SchemaGenerationConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec
@@ -142,6 +143,36 @@ testSingleNonTupleArrayNested = it "can generate the schema for a single non-tup
         |]
     in
         testJsonsToSchema [j1] expected
+
+tupleTypedArrayConfig = defaultSchemaGenerationConfig {
+  typeArraysAsTuples = True
+}
+
+testSingleTupleArrayEmpty :: Spec
+testSingleTupleArrayEmpty = it "can generate the schema for a single positionally typed tuple array that is empty" $
+    let j1 = [text| [] |]
+        expected = [text|
+            {"type": "array"}
+        |]
+    in
+        testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
+
+testSingleTupleArrayMultitype :: Spec
+testSingleTupleArrayMultitype = it "can generate the schema for a single positionally typed tuple array with different types at different positions" $
+    let j1 = [text| [1, "2", "3", null, false] |]
+        expected = [text|
+            {
+                "type": "array",
+                "items": [
+                    {"type": "integer"},
+                    {"type": "string"},
+                    {"type": "string"},
+                    {"type": "null"},
+                    {"type": "boolean"}]
+            }
+        |]
+    in
+        testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
 
 testSingleEmptyObject :: Spec
 testSingleEmptyObject = it "can generate the schema for a single empty object" $
@@ -338,6 +369,10 @@ spec = do
       testSingleNonTupleArrayMonotype
       testSingleNonTupleArrayMultitype
       testSingleNonTupleArrayNested
+
+    describe "Single Instances of the Tuple Array Type" $ do
+      testSingleTupleArrayEmpty
+      testSingleTupleArrayMultitype
 
     describe "Single Instances of Object Types" $ do
       testSingleEmptyObject

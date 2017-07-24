@@ -1,7 +1,9 @@
 module TestUtils
   ( testJsonToSchema
   , testJsonsToSchema
+  , testJsonsToSchemaWithConfig
   , testJsonsToSchemaPretty
+  , testJsonsToSchemaPrettyWithConfig
   ) where
 
 import Protolude
@@ -14,6 +16,7 @@ import qualified Data.Text.Encoding as TE
 import qualified JSONSchema.Draft4 as D4
 
 import JSONSchema.SchemaConverter
+import JSONSchema.SchemaGenerationConfig
 import Test.Hspec
 
 import qualified GHC.Base
@@ -35,12 +38,12 @@ parseJson json =
 testJsonToSchema :: Text -> Text -> IO ()
 testJsonToSchema jsonText = testJsonsToSchema [jsonText]
 
-testJsonsToSchema :: [Text] -> Text -> IO ()
-testJsonsToSchema jsonTexts expectedSchema = do
+testJsonsToSchemaWithConfig :: SchemaGenerationConfig -> [Text] -> Text -> IO ()
+testJsonsToSchemaWithConfig c jsonTexts expectedSchema = do
   let jsonInstances = fmap parseJson jsonTexts
   let computedSchema = fromMaybe
                    (panic "Could not unify multiple schemas")
-                   (jsonsToSchema jsonInstances)
+                   (jsonsToSchemaWithConfig c jsonInstances)
 
   -- Check schema is as expected
   computedSchema `shouldBe` parseSchema expectedSchema
@@ -51,11 +54,17 @@ testJsonsToSchema jsonTexts expectedSchema = do
 
   all isRight results `shouldBe` True
 
+testJsonsToSchema :: [Text] -> Text -> IO ()
+testJsonsToSchema = testJsonsToSchemaWithConfig defaultSchemaGenerationConfig
 
-testJsonsToSchemaPretty :: [Text] -> Text -> IO ()
-testJsonsToSchemaPretty jsonTexts expectedSchema =
+
+testJsonsToSchemaPrettyWithConfig :: SchemaGenerationConfig -> [Text] -> Text -> IO ()
+testJsonsToSchemaPrettyWithConfig c jsonTexts expectedSchema =
   maybe
     (panic "Could not unify multiple schemas")
     printSchema
-    (jsonsToSchema $ fmap parseJson jsonTexts) `shouldBe`
+    (jsonsToSchemaWithConfig c $ fmap parseJson jsonTexts) `shouldBe`
   printSchema (parseSchema expectedSchema)
+
+testJsonsToSchemaPretty :: [Text] -> Text -> IO ()
+testJsonsToSchemaPretty = testJsonsToSchemaPrettyWithConfig defaultSchemaGenerationConfig

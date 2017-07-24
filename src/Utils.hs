@@ -20,7 +20,6 @@ import qualified Data.Scientific as DS
 altMaybe :: (a -> a -> a) -> Maybe a -> Maybe a -> Maybe a
 altMaybe f a b = f <$> a <*> b <|> a <|> b
 
-
 -- Make certain functions return Nothing when handed an empty list instead
 -- of carrying on with their current behavior
 emptyFold :: (Foldable t) => (t a -> a) -> t a -> Maybe a

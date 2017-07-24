@@ -5,8 +5,6 @@ module JSONSchema.SchemaConverter
   , jsonsToSchemaWithConfig
   , schemasToSchema
   , unifySchemas
-  , SchemaGenerationConfig(..)
-  , defaultSchemaGenerationConfig
   ) where
 
 import           Protolude
@@ -24,23 +22,15 @@ import qualified JSONSchema.Draft4                 as D4
 
 import qualified JSONSchema.Validator.Draft4.Any   as V4A
 import qualified JSONSchema.Validator.Draft4.Array as V4Arr
+import qualified JSONSchema.Validator.Draft4.Object as V4Obj
 
 import qualified Data.Scientific                   as DS
 import qualified Safe                              as S
 import qualified Safe.Foldable                     as SF
 
 import qualified Utils
+import JSONSchema.SchemaGenerationConfig
 
-data SchemaGenerationConfig = SchemaGenerationConfig {
-      typeArraysAsTuples :: Bool
-    , sealObjectProperties :: Bool
-}
-
-defaultSchemaGenerationConfig :: SchemaGenerationConfig
-defaultSchemaGenerationConfig = SchemaGenerationConfig {
-    typeArraysAsTuples = False
-  , sealObjectProperties = False
-}
 
 makeBasicTypeSchema :: V4A.SchemaType -> D4.Schema
 makeBasicTypeSchema t =
@@ -49,20 +39,36 @@ makeBasicTypeSchema t =
 makeObjectSchema :: SchemaGenerationConfig -> AE.Object -> D4.Schema
 makeObjectSchema c o =
   (makeBasicTypeSchema V4A.SchemaObject) {
-    D4._schemaRequired = requireds o,
-    D4._schemaProperties = properties o
+      D4._schemaRequired = requireds o
+    , D4._schemaProperties = properties o
+    , D4._schemaAdditionalProperties = additionalProperties
   }
   where
     -- We add the required property only if the object has any keys
     requireds = fmap DS.fromList . Utils.listToMaybeList . HM.keys
     properties :: HM.HashMap Text AE.Value -> Maybe (HM.HashMap Text D4.Schema)
     properties = Just . map (jsonToSchemaWithConfig c)
+    -- Make objects unable to accept additional properties if we say so
+    additionalProperties = if sealObjectProperties c
+      then Just $ V4Obj.AdditionalPropertiesBool False
+      else Nothing
 
 makeArrayAsTupleSchema :: SchemaGenerationConfig -> AE.Array -> D4.Schema
 makeArrayAsTupleSchema c xs =
   (makeBasicTypeSchema V4A.SchemaArray) {
-    D4._schemaItems = Just $ V4Arr.ItemsArray $ V.toList $ fmap (jsonToSchemaWithConfig c) xs
+    -- the inner Maybe checks to see if the array is empty
+    --  because "items": [] is not valid according to the metaschema
+    -- Under 5.3.1.4.  Default values the absence of `items` is equivalent
+    -- to "items": {}
+    D4._schemaItems = createItemsArray xs
   }
+    where
+      createItemsArray :: V.Vector AE.Value -> Maybe (V4Arr.Items D4.Schema)
+      createItemsArray =
+        (V4Arr.ItemsArray <$>) .
+        Utils.listToMaybeList .
+        V.toList .
+        fmap (jsonToSchemaWithConfig c)
 
 makeArrayAsSingleSchema :: SchemaGenerationConfig -> AE.Array -> D4.Schema
 makeArrayAsSingleSchema c xs =
@@ -77,8 +83,8 @@ jsonToSchemaWithConfig c (AE.String s) = makeBasicTypeSchema V4A.SchemaString
 jsonToSchemaWithConfig c (AE.Bool s)   = makeBasicTypeSchema V4A.SchemaBoolean
 jsonToSchemaWithConfig c AE.Null       = makeBasicTypeSchema V4A.SchemaNull
 jsonToSchemaWithConfig c (AE.Object o) = makeObjectSchema c o
-jsonToSchemaWithConfig c (AE.Array xs) = makeArrayAsSingleSchema c xs
-
+jsonToSchemaWithConfig c (AE.Array xs) = arrayConverter c xs
+  where arrayConverter = if typeArraysAsTuples c then makeArrayAsTupleSchema else makeArrayAsSingleSchema
 
 jsonToSchema :: AE.Value -> D4.Schema
 jsonToSchema = jsonToSchemaWithConfig defaultSchemaGenerationConfig
@@ -90,4 +96,4 @@ jsonsToSchema :: (Foldable f, Functor f) => f AE.Value -> Maybe D4.Schema
 jsonsToSchema = jsonsToSchemaWithConfig defaultSchemaGenerationConfig
 
 jsonsToSchemaWithConfig :: (Foldable f, Functor f) => SchemaGenerationConfig -> f AE.Value -> Maybe D4.Schema
-jsonsToSchemaWithConfig c = schemasToSchema . fmap (jsonToSchemaWithConfig defaultSchemaGenerationConfig)
+jsonsToSchemaWithConfig c = schemasToSchema . fmap (jsonToSchemaWithConfig c)

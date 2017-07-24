@@ -21,6 +21,7 @@ library
   exposed-modules:     Lib
                      , JSONSchema.SchemaConverter
                      , JSONSchema.Unifiers
+                     , JSONSchema.SchemaGenerationConfig
                      , Utils
   build-depends:       base >= 4.7 && < 5
                      , hjsonschema
