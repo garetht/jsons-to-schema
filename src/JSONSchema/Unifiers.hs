@@ -28,7 +28,8 @@ unifySchemas nextSchema =
   unifyPropertiesConstraint nextSchema .
   unifyRequiredConstraint nextSchema .
   unifyTypeConstraint nextSchema .
-  unifyMaximumMinimumConstraints nextSchema . unifySimpleConstraints nextSchema
+  unifyMaximumMinimumConstraints nextSchema .
+  unifySimpleConstraints nextSchema
 
 -- The linear unifier extracts an array of Maybes and filters them
 -- to only the Just values. We then use foldr1May to fold across the

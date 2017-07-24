@@ -10,6 +10,51 @@ import           TestUtils
 
 -- These tests are helpfully borrowed from Python's GenSON
 -- https://github.com/wolverdude/GenSON
+testBasicTypesSingleStringInstance :: Spec
+testBasicTypesSingleStringInstance = it "can handle a single instance of a string" $
+    let j1 = [text| "string" |]
+        expected = [text|
+            {"type": "string"}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testBasicTypesSingleIntegerInstance :: Spec
+testBasicTypesSingleIntegerInstance = it "can handle a single instance of a integer" $
+    let j1 = [text| 1 |]
+        expected = [text|
+            {"type": "integer"}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testBasicTypesSingleNumberInstance :: Spec
+testBasicTypesSingleNumberInstance = it "can handle a single instance of a number" $
+    let j1 = [text| 2.1 |]
+        expected = [text|
+            {"type": "number"}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testBasicTypesSingleBooleanInstance :: Spec
+testBasicTypesSingleBooleanInstance = it "can handle a single instance of a boolean" $
+    let j1 = [text| true |]
+        expected = [text|
+            {"type": "boolean"}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testBasicTypesSingleNullInstance :: Spec
+testBasicTypesSingleNullInstance = it "can handle a single instance of a null" $
+    let j1 = [text| null |]
+        expected = [text|
+            {"type": "null"}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
 
 testBasicTypesSingleType :: Spec
 testBasicTypesSingleType = it "can handle multiple JSON examples of a single type" $
@@ -45,9 +90,61 @@ testBasicTypesIntegerType = it "can handle the Integer type when given an intege
     in
         testJsonsToSchema [j1, j2] expected
 
+testSingleNonTupleArrayEmpty :: Spec
+testSingleNonTupleArrayEmpty = it "can generate the schema for a single non-tuple typed array that is empty" $
+    let j1 = [text| [] |]
+        expected = [text|
+            {"type": "array", "items": {}}
+        |]
+    in
+        testJsonsToSchema [j1] expected
 
-testSinglyTypedArrayEmpty :: Spec
-testSinglyTypedArrayEmpty = it "can generate the schema for a singly-typed (non-tuple typed) array" $
+testSingleNonTupleArrayMonotype :: Spec
+testSingleNonTupleArrayMonotype = it "can generate the schema for a single non-tuple typed array of one type" $
+    let j1 = [text| ["spam", "spam", "spam", "eggs", "spam"] |]
+        expected = [text|
+            {"type": "array", "items": {"type": "string"}}
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testSingleNonTupleArrayMultitype :: Spec
+testSingleNonTupleArrayMultitype = it "can generate the schema for a single non-tuple typed array of multiple different types" $
+    let j1 = [text| [1, "2", None, False] |]
+        expected = [text|
+          {
+              "type": "array",
+              "items": {
+                  "type": ["boolean", "integer", "null", "string"]
+              }
+          }
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testSingleNonTupleArrayNested :: Spec
+testSingleNonTupleArrayNested = it "can generate the schema for a single non-tuple typed array with nested arrays" $
+    let j1 = [text| [
+                        ["surprise"],
+                        ["fear", "surprise"],
+                        ["fear", "surprise", "ruthless efficiency"],
+                        ["fear", "surprise", "ruthless efficiency",
+                         "an almost fanatical devotion to the Pope"]
+                    ]
+              |]
+        expected = [text|
+          {
+              "type": "array",
+              "items": {
+                  "type": "array",
+                  "items": {"type": "string"}}
+          }
+        |]
+    in
+        testJsonsToSchema [j1] expected
+
+testNonTupleArrayEmpty :: Spec
+testNonTupleArrayEmpty = it "can generate the schema for multiple non-tuple typed arrays" $
     let j1 = [text| [] |]
         j2 = [text| [] |]
         expected = [text|
@@ -56,8 +153,8 @@ testSinglyTypedArrayEmpty = it "can generate the schema for a singly-typed (non-
     in
         testJsonsToSchema [j1, j2] expected
 
-testSinglyTypedArrayMonotype :: Spec
-testSinglyTypedArrayMonotype = it "can generate the schema for a singly-typed (non-tuple typed) array with only one type" $
+testNonTupleArrayMonotype :: Spec
+testNonTupleArrayMonotype = it "can generate the schema for multiple non-tuple typed arrays with only one type" $
     let j1 = [text| ["spam", "spam", "spam", "eggs", "spam"] |]
         j2 = [text| ["spam", "bacon", "eggs", "spam"] |]
         expected = [text|
@@ -66,8 +163,8 @@ testSinglyTypedArrayMonotype = it "can generate the schema for a singly-typed (n
     in
         testJsonsToSchema [j1, j2] expected
 
-testSinglyTypedArrayMultitype :: Spec
-testSinglyTypedArrayMultitype = it "can generate the schema for a singly-typed (non-tuple typed) array with multiple types" $
+testNonTupleArrayMultitype :: Spec
+testNonTupleArrayMultitype = it "can generate the schema for multiple non-tuple typed arrays with multiple types" $
     let j1 = [text| [1, "2", "3", null, false] |]
         j2 = [text| [1, 2, "3", false] |]
         expected = [text|
@@ -86,8 +183,8 @@ testSinglyTypedArrayMultitype = it "can generate the schema for a singly-typed (
     in
         testJsonsToSchema [j1, j2] expected
 
-testSinglyTypedArrayNested :: Spec
-testSinglyTypedArrayNested = it "can generate the schema for a singly-typed (non-tuple typed) array with nested array types" $
+testNonTupleArrayNested :: Spec
+testNonTupleArrayNested = it "can generate the schema for multiple non-tuple typed arrays with nested array types" $
     let j1 = [text|
         [
           [
@@ -124,13 +221,22 @@ testSinglyTypedArrayNested = it "can generate the schema for a singly-typed (non
 
 spec :: Spec
 spec = do
-    describe "Basic Types" $ do
+    describe "Single Instances of Basic Types" $ do
+        testBasicTypesSingleStringInstance
+        testBasicTypesSingleIntegerInstance
+        testBasicTypesSingleNumberInstance
+        testBasicTypesSingleBooleanInstance
+        testBasicTypesSingleNullInstance
+
+--     describe "Single Instances of the Non-Tuple Array Type"
+
+    describe "Combining Multiple Instances of Basic Types" $ do
         testBasicTypesSingleType
         testBasicTypesMultipleType
         testBasicTypesIntegerType
 
-    describe "Array Type" $ do
-         testSinglyTypedArrayEmpty
-         testSinglyTypedArrayMonotype
-         testSinglyTypedArrayMultitype
-         testSinglyTypedArrayNested
+    describe "Combining Multiple Instances of the Non-Tuple Array Type" $ do
+         testNonTupleArrayEmpty
+         testNonTupleArrayMonotype
+         testNonTupleArrayMultitype
+         testNonTupleArrayNested
