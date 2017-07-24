@@ -174,6 +174,55 @@ testSingleTupleArrayMultitype = it "can generate the schema for a single positio
     in
         testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
 
+testSingleTupleArrayNested :: Spec
+testSingleTupleArrayNested = it "can generate the schema for a single positionally typed tuple array that is nested" $
+    let j1 = [text| [
+                      ["surprise"],
+                      ["fear", "surprise"],
+                      ["fear", "surprise", "ruthless efficiency"],
+                      ["fear", "surprise", "ruthless efficiency",
+                       "an almost fanatical devotion to the Pope"]
+                    ] |]
+        expected = [text|
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "array",
+              "items": [
+                  {"type": "string"}
+              ]
+            },
+            {
+              "type": "array",
+              "items": [
+                  {"type": "string"},
+                  {"type": "string"}
+              ]
+            },
+            {
+              "type": "array",
+              "items": [
+                  {"type": "string"},
+                  {"type": "string"},
+                  {"type": "string"}
+              ]
+            },
+            {
+              "type": "array",
+              "items": [
+                  {"type": "string"},
+                  {"type": "string"},
+                  {"type": "string"},
+                  {"type": "string"}
+              ]
+              },
+          ]
+        }
+        |]
+    in
+        testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
+
 testSingleEmptyObject :: Spec
 testSingleEmptyObject = it "can generate the schema for a single empty object" $
     let j1 = [text| {} |]
@@ -373,6 +422,7 @@ spec = do
     describe "Single Instances of the Tuple Array Type" $ do
       testSingleTupleArrayEmpty
       testSingleTupleArrayMultitype
+      testSingleTupleArrayNested
 
     describe "Single Instances of Object Types" $ do
       testSingleEmptyObject
