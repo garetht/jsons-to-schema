@@ -22,9 +22,11 @@ import Test.Hspec
 import qualified GHC.Base
 
 parseSchema :: Text -> D4.Schema
-parseSchema =
-  fromMaybe (panic "Failed to parse schema") .
-  AE.decode . BSL.fromStrict . TE.encodeUtf8
+parseSchema s =
+  fromMaybe (panic $ "Failed to parse schema " <> s) .
+  AE.decode .
+  BSL.fromStrict .
+  TE.encodeUtf8 $ s
 
 printSchema :: D4.Schema -> BSL.ByteString
 printSchema = AEEP.encodePretty . AE.toJSON
