@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module JSONSchema.ArrayTypes where
+module JSONSchema.ArrayTypeTests where
 
 import           JSONSchema.SchemaGenerationConfig
 import           NeatInterpolation

@@ -29,6 +29,7 @@ unifySchemas nextSchema =
   unifyRequiredConstraint nextSchema .
   unifyTypeConstraint nextSchema .
   unifyMaximumMinimumConstraints nextSchema .
+  unifySingleValueConstraints nextSchema .
   unifySimpleConstraints nextSchema
 
 -- The linear unifier extracts an array of Maybes and filters them
@@ -44,13 +45,34 @@ linearUnifier foldF getter xs = S.foldr1May foldF . catMaybes $ fmap getter xs
 -- the merged schema will have a maximum of 20.
 unifySimpleConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifySimpleConstraints nextSchema accSchema =
-  accSchema { D4._schemaMaxProperties = linearUnifier max D4._schemaMaxProperties schemas
+  accSchema {
+    D4._schemaMaxProperties = linearUnifier max D4._schemaMaxProperties schemas
   , D4._schemaMinProperties = linearUnifier min D4._schemaMinProperties schemas
   , D4._schemaMaxItems = linearUnifier max D4._schemaMaxItems schemas
   , D4._schemaMinItems = linearUnifier min D4._schemaMinItems schemas
   , D4._schemaMaxLength = linearUnifier max D4._schemaMaxLength schemas
   , D4._schemaMinLength = linearUnifier min D4._schemaMinLength schemas
   , D4._schemaUniqueItems = linearUnifier (&&) D4._schemaUniqueItems schemas
+  , D4._schemaPatternProperties = linearUnifier HM.union D4._schemaPatternProperties schemas
+  , D4._schemaOther = foldr HM.union HM.empty (fmap D4._schemaOther schemas)
+  }
+  where
+    schemas = [nextSchema, accSchema]
+
+unifySingleValueConstraints :: D4.Schema -> D4.Schema -> D4.Schema
+unifySingleValueConstraints nextSchema accSchema = accSchema {
+      D4._schemaVersion = linearUnifier const D4._schemaVersion schemas
+    , D4._schemaId = linearUnifier const D4._schemaId schemas
+    , D4._schemaRef = linearUnifier const D4._schemaRef schemas
+    , D4._schemaDefinitions = linearUnifier const D4._schemaDefinitions schemas
+    , D4._schemaMultipleOf = linearUnifier const D4._schemaMultipleOf schemas
+    , D4._schemaPattern = linearUnifier const D4._schemaPattern schemas
+    , D4._schemaDependencies = linearUnifier const D4._schemaDependencies schemas
+    , D4._schemaEnum = linearUnifier const D4._schemaEnum schemas
+    , D4._schemaAllOf = linearUnifier const D4._schemaAllOf schemas
+    , D4._schemaAnyOf = linearUnifier const D4._schemaAnyOf schemas
+    , D4._schemaOneOf = linearUnifier const D4._schemaOneOf schemas
+    , D4._schemaNot = linearUnifier const D4._schemaNot schemas
   }
   where
     schemas = [nextSchema, accSchema]

@@ -1,18 +1,25 @@
 module Utils
   (altMaybe, andMaybe,
   computeMaximumConstraints, computeMinimumConstraints,
-  zipWithPadding, listToMaybeList)
+  zipWithPadding, listToMaybeList, printSchema)
   where
 
-import Protolude
+import           Protolude
 
-import Control.Applicative
-import Data.Traversable
-import Data.List
+import           Control.Applicative
+import           Data.List
+import           Data.Traversable
 
-import qualified Safe as S
-import qualified Data.Scientific as DS
+import qualified Data.Aeson               as AE
+import qualified Data.Aeson.Encode.Pretty as AEEP
+import qualified Data.ByteString.Lazy     as BSL
+import qualified Data.Scientific          as DS
+import qualified JSONSchema.Draft4        as D4
+import qualified Safe                     as S
 
+
+printSchema :: D4.Schema -> BSL.ByteString
+printSchema = AEEP.encodePretty . AE.toJSON
 
 -- ordMaybe runs the binary function f on its arguments
 -- and returns the Just maximum of extant values or nothing if
@@ -53,9 +60,9 @@ computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
     where
         justComparer :: (Ord a) => Maybe a -> Maybe a -> Ordering
         justComparer (Just x) (Just y) = compare x y
-        justComparer (Just _) Nothing = LT
-        justComparer Nothing (Just _) = GT
-        justComparer Nothing Nothing = EQ
+        justComparer (Just _) Nothing  = LT
+        justComparer Nothing (Just _)  = GT
+        justComparer Nothing Nothing   = EQ
         zipComparer (m1, em1) (m2, em2) =
             -- We don't need Down here because the comparison is already taking the minimum
             if m1 == m2 then compare em1 em2 else justComparer m1 m2
