@@ -51,6 +51,8 @@ test-suite json-to-schema-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   other-modules:       JSONSchema.SchemaConverterSpec
+                     , JSONSchema.BasicTypes
+                     , JSONSchema.ArrayTypes
                      , TestUtils
                      , UtilsSpec
   main-is:             Spec.hs
