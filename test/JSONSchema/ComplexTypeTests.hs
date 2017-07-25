@@ -199,3 +199,45 @@ testMultipleEmptyObjects = it "can generate the schema for multiple empty object
         expected = [text| {"type": "object", "properties": {}} |]
     in
         testJsonsToSchema [j1, j2] expected
+
+testEdgeCaseNestedSchema :: Spec
+testEdgeCaseNestedSchema = it "can generate the schema for strangely nested objects" $
+    let j1 = [text| [
+                        [
+                            null,
+                            [
+                                null
+                            ]
+                        ],
+                        {},
+                        {
+                            "!": false
+                        }
+                    ] |]
+        expected = [text|
+          {
+            "items": {
+                "items": {
+                    "items": {
+                        "type": "null"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "type": [
+                    "object",
+                    "array"
+                ],
+                "properties": {
+                    "!": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "type": "array"
+          }
+         |]
+    in
+        testJsonsToSchemaPretty [j1] expected

@@ -4,12 +4,19 @@ module TestUtils
   , testJsonsToSchemaWithConfig
   , testJsonsToSchemaPretty
   , testJsonsToSchemaPrettyWithConfig
+  , shouldValidate
   , shouldNotValidate
+  , shouldNotValidateTexts
+  , validatesAll
+  , testUnifySchemas
+  , testUnifySchemaTexts
+  , printJson
   ) where
 
 import Protolude
 
 import qualified Data.Aeson as AE
+import qualified Data.HashMap.Lazy as HM
 import qualified Data.Aeson.Encode.Pretty as AEEP
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Text as T
@@ -32,17 +39,39 @@ parseSchema s =
 printSchema :: D4.Schema -> BSL.ByteString
 printSchema = AEEP.encodePretty . AE.toJSON
 
+printJson :: AE.Value -> BSL.ByteString
+printJson = AEEP.encodePretty
+
 parseJson :: Text -> AE.Value
 parseJson json =
   (fromMaybe (panic $ "Could not parse JSON " <> json) .
    AE.decode . BSL.fromStrict . TE.encodeUtf8)
     json
 
-shouldNotValidate :: Text -> [Text] -> IO ()
-shouldNotValidate expectedSchema jsonTexts = do
+validatesAll :: D4.Schema -> [AE.Value] -> Bool
+validatesAll schema jsons = and $ validator <$> jsons
+  where validatableSchema = D4.SchemaWithURI schema Nothing
+        possibleValidator = D4.checkSchema (D4.URISchemaMap HM.empty) validatableSchema
+        validator :: AE.Value -> Bool
+        validator = either (\err value -> False) (null .) possibleValidator
+
+shouldValidate :: D4.Schema -> [AE.Value] -> IO ()
+shouldValidate schema jsons = do
+  let validatableSchema = D4.SchemaWithURI schema Nothing
+  results <- sequence $ fmap (D4.fetchFilesystemAndValidate validatableSchema) jsons
+  results `shouldBe` replicate (length jsons) (Right ())
+
+shouldNotValidateTexts :: Text -> [Text] -> IO ()
+shouldNotValidateTexts expectedSchema jsonTexts = do
   let jsonInstances = fmap parseJson jsonTexts
-  let validatableSchema = D4.SchemaWithURI (parseSchema expectedSchema) Nothing
-  results <- sequence $ fmap (D4.fetchFilesystemAndValidate validatableSchema) jsonInstances
+  let schema = parseSchema expectedSchema
+
+  schema `shouldNotValidate` jsonInstances
+
+shouldNotValidate :: D4.Schema -> [AE.Value] -> IO ()
+shouldNotValidate schema jsons = do
+  let validatableSchema = D4.SchemaWithURI schema Nothing
+  results <- sequence $ fmap (D4.fetchFilesystemAndValidate validatableSchema) jsons
 
   all isLeft results `shouldBe` True
 
@@ -79,3 +108,9 @@ testJsonsToSchemaPrettyWithConfig c jsonTexts expectedSchema =
 
 testJsonsToSchemaPretty :: [Text] -> Text -> IO ()
 testJsonsToSchemaPretty = testJsonsToSchemaPrettyWithConfig defaultSchemaGenerationConfig
+
+testUnifySchemaTexts :: Text -> Text -> Text -> IO ()
+testUnifySchemaTexts s1 s2 expected = testUnifySchemas (parseSchema s1) (parseSchema s2) (parseSchema expected)
+
+testUnifySchemas :: D4.Schema -> D4.Schema -> D4.Schema -> IO ()
+testUnifySchemas s1 s2 expected = unifySchemas s1 s2 `shouldBe` expected

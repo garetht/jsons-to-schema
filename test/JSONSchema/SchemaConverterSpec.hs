@@ -17,6 +17,8 @@ import Prelude (read)
 -- These tests are helpfully borrowed from Python's GenSON
 -- https://github.com/wolverdude/GenSON
 
+
+
 spec :: Spec
 spec = do
   describe "Single Instances of Basic Types" $ do
@@ -53,6 +55,7 @@ spec = do
     testComplexObjectInArraySealingProperties
     testComplexThreeDeepObject
     testComplexThreeDeepObjectSealingProperties
+    testEdgeCaseNestedSchema
 
   describe "Combining Multiple Instances of the Non-Tuple Array Type" $ do
     testNonTupleArrayEmpty
@@ -71,4 +74,5 @@ spec = do
   describe "Schema Properties" $ do
     testPropUnifyEmptySchemaRightIdentity
     testPropUnifyEmptySchemaLeftIdentity
+    testJsonToSchemaValidatesJson
 

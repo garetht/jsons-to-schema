@@ -44,7 +44,12 @@ makeObjectSchema c o =
     , D4._schemaAdditionalProperties = additionalProperties
   }
   where
-    -- We add the required property only if the object has any keys
+    -- We add the required property only if an object has keys. Generating
+    -- required: [] will not work because the Draft 4 specification does not
+    -- permit empty arrays. Instead, when unifying the required type, we
+    -- make sure that a _schemaRequired of Nothing will eliminate all other
+    -- specified required properties, i.e. if an object does not require any
+    -- properties, than no other object can either.
     requireds = fmap DS.fromList . Utils.listToMaybeList . HM.keys
     properties :: HM.HashMap Text AE.Value -> Maybe (HM.HashMap Text D4.Schema)
     properties = Just . map (jsonToSchemaWithConfig c)

@@ -91,7 +91,7 @@ testSingleTupleArrayMultitype = it "can generate the schema for a single positio
         |]
     let invalid1 = [text| [1, 2, "3", null, false] |]
     testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1] expected
-    expected `shouldNotValidate` [invalid1]
+    expected `shouldNotValidateTexts` [invalid1]
 
 testSingleTupleArrayNested :: Spec
 testSingleTupleArrayNested = it "can generate the schema for a single positionally typed tuple array that is quite nested" $
@@ -243,7 +243,7 @@ testTupleArraysMultitype = it "can generate the schema for multiple tuple typed 
           |]
       let invalid1 = [text| [1, 2, 3, null, false] |]
       testJsonsToSchemaWithConfig tupleTypedArrayConfig [j1, j2] expected
-      expected `shouldNotValidate` [invalid1]
+      expected `shouldNotValidateTexts` [invalid1]
 
 testTupleArraysNested :: Spec
 testTupleArraysNested = it "can generate the schema for multiple tuple typed arrays that are nested" $

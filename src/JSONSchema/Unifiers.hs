@@ -101,11 +101,12 @@ unifyTypeConstraint nextSchema accSchema =
     D4._schemaType = linearUnifier (<>) D4._schemaType [nextSchema, accSchema]
   }
 
+-- If one object does not require properties, then none of them can require
+-- any properties.
 unifyRequiredConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyRequiredConstraint nextSchema accSchema =
   accSchema {
-    D4._schemaRequired =
-      linearUnifier DS.intersection D4._schemaRequired [nextSchema, accSchema]
+    D4._schemaRequired = DS.intersection <$> D4._schemaRequired nextSchema <*> D4._schemaRequired accSchema
   }
 
 unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
