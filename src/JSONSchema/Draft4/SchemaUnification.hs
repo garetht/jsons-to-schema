@@ -6,17 +6,13 @@ import           Protolude                               hiding ((<>))
 
 import qualified Data.HashMap.Lazy                       as HM
 import qualified Data.Set                                as DS
-import qualified Data.Vector                             as V
 import qualified JSONSchema.Draft4                       as D4
 
-import qualified JSONSchema.Validator.Draft4.Any         as V4A
 import qualified JSONSchema.Validator.Draft4.Array       as V4Arr
 import qualified JSONSchema.Validator.Draft4.Object      as V4Obj
 
-import qualified Data.Scientific                         as DS
-import           Data.Semigroup                          (Semigroup, (<>))
+import           Data.Semigroup                          ((<>))
 import qualified Safe                                    as S
-import qualified Safe.Foldable                           as SF
 
 import qualified JSONSchema.Draft4.Internal.Utils as Utils
 
@@ -136,13 +132,13 @@ unifyAdditionalPropertiesConstraint nextSchema accSchema =
       V4Obj.AdditionalPropertiesBool $ b1 || b2
           -- allowing additional objects (True) is always at least as permissive as any schema
           -- all schemas are at least as permissive as not allowing any additional objects (False)
-    unify bool@(V4Obj.AdditionalPropertiesBool b) obj@(V4Obj.AdditionalPropertiesObject s) =
+    unify bln@(V4Obj.AdditionalPropertiesBool b) obj@(V4Obj.AdditionalPropertiesObject s) =
       if b
-        then bool
+        then bln
         else obj
-    unify obj@(V4Obj.AdditionalPropertiesObject s) bool@(V4Obj.AdditionalPropertiesBool b) =
+    unify obj@(V4Obj.AdditionalPropertiesObject s) bln@(V4Obj.AdditionalPropertiesBool b) =
       if b
-        then bool
+        then bln
         else obj
     unify (V4Obj.AdditionalPropertiesObject o1) (V4Obj.AdditionalPropertiesObject o2) =
       V4Obj.AdditionalPropertiesObject $ unifySchemas o1 o2
@@ -180,13 +176,13 @@ unifyAdditionalItemsConstraint nextSchema accSchema =
       V4Arr.AdditionalBool $ b1 || b2
           -- allowing additional objects (True) is always at least as permissive as any schema
           -- all schemas are at least as permissive as not allowing any additional objects (False)
-    unify bool@(V4Arr.AdditionalBool b) obj@(V4Arr.AdditionalObject s) =
+    unify bln@(V4Arr.AdditionalBool b) obj@(V4Arr.AdditionalObject s) =
       if b
-        then bool
+        then bln
         else obj
-    unify obj@(V4Arr.AdditionalObject s) bool@(V4Arr.AdditionalBool b) =
+    unify obj@(V4Arr.AdditionalObject s) bln@(V4Arr.AdditionalBool b) =
       if b
-        then bool
+        then bln
         else obj
     unify (V4Arr.AdditionalObject o1) (V4Arr.AdditionalObject o2) =
       V4Arr.AdditionalObject $ unifySchemas o1 o2

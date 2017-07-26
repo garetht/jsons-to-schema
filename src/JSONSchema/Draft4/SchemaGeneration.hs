@@ -12,10 +12,7 @@ import           Protolude
 import           JSONSchema.Draft4.SchemaUnification      (unifySchemas)
 
 import qualified Data.Aeson                               as AE
-import qualified Data.ByteString                          as BS
-import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.HashMap.Lazy                        as HM
-import qualified Data.List.NonEmpty                       as NE
 import qualified Data.Scientific                          as DSC
 import qualified Data.Set                                 as DST
 import qualified Data.Vector                              as V
@@ -25,7 +22,6 @@ import qualified JSONSchema.Validator.Draft4.Any          as V4A
 import qualified JSONSchema.Validator.Draft4.Array        as V4Arr
 import qualified JSONSchema.Validator.Draft4.Object       as V4Obj
 
-import qualified Safe                                     as S
 import qualified Safe.Foldable                            as SF
 
 import           JSONSchema.Draft4.SchemaGenerationConfig
