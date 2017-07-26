@@ -208,7 +208,7 @@ testJsonToSchemaWithConfigValidatesJson = modifyMaxSuccess (* 100) $ prop "will 
       where schema = JSSC.jsonToSchemaWithConfig config json
 
 testSchemaUnifierValidatesAllJson :: Spec
-testSchemaUnifierValidatesAllJson = modifyMaxSuccess (* 100) $ prop "will generate a schema that validates all the JSON documents unified to produce it" configurer
+testSchemaUnifierValidatesAllJson = modifyMaxSuccess (* 50) $ prop "will generate a schema that validates all the JSON documents unified to produce it" configurer
   where
     configurer :: SchemaGenerationConfig -> Property
     configurer config = sizedJsonsProp 10 (p config)
