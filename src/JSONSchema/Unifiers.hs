@@ -102,12 +102,15 @@ unifyTypeConstraint nextSchema accSchema =
   }
 
 -- If one object does not require properties, then none of them can require
--- any properties.
+-- any properties. If the `required` array would be empty, we return Nothing
+-- instead (the V4 metaschema says the required array cannot be empty)
 unifyRequiredConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyRequiredConstraint nextSchema accSchema =
   accSchema {
-    D4._schemaRequired = DS.intersection <$> D4._schemaRequired nextSchema <*> D4._schemaRequired accSchema
+    D4._schemaRequired = Utils.setToMaybeSet =<< intersected
   }
+  where intersected = DS.intersection <$> D4._schemaRequired nextSchema <*> D4._schemaRequired accSchema
+
 
 unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyPropertiesConstraint nextSchema accSchema =

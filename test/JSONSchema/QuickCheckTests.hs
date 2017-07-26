@@ -19,6 +19,7 @@ import           JSONSchema.Unifiers               as JU
 
 import           Data.Generics.Uniplate.Data
 import           Test.Hspec
+import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances
 import qualified Test.QuickCheck.Property          as TQP
@@ -170,23 +171,21 @@ explainSchemaCounterexample json schema =
   "The JSON " <> printJsonToString json <> " does not validate against its generated schema " <> printSchemaToString schema
 
 testPropUnifyEmptySchemaRightIdentity :: Spec
-testPropUnifyEmptySchemaRightIdentity = it "will not change a restricted schema when an empty schema is passed in on the right" $
-  property prop
+testPropUnifyEmptySchemaRightIdentity = prop "will not change a restricted schema when an empty schema is passed in on the right" p
   where
-    prop :: RestrictedSchema -> Bool
-    prop rs = JU.unifySchemas (getSchema rs) emptySchema == getSchema rs
+    p :: RestrictedSchema -> Bool
+    p rs = JU.unifySchemas (getSchema rs) emptySchema == getSchema rs
 
 testPropUnifyEmptySchemaLeftIdentity :: Spec
-testPropUnifyEmptySchemaLeftIdentity = it "will not change a restricted schema when an empty schema is passed in on the left" $
-  property prop
+testPropUnifyEmptySchemaLeftIdentity = prop "will not change a restricted schema when an empty schema is passed in on the left" p
   where
-    prop :: RestrictedSchema -> Bool
-    prop rs = JU.unifySchemas emptySchema (getSchema rs) == getSchema rs
+    p :: RestrictedSchema -> Bool
+    p rs = JU.unifySchemas emptySchema (getSchema rs) == getSchema rs
 
 testJsonToSchemaValidatesJson :: Spec
-testJsonToSchemaValidatesJson = it "will generate a schema that can validate the JSON used to generate the schema" $
-  sizedJsonProp 50 prop
+testJsonToSchemaValidatesJson = modifyMaxSuccess (* 5) $ it "will generate a schema that can validate the JSON used to generate the schema" $
+  sizedJsonProp 50 p
   where
-    prop :: AE.Value -> Property
-    prop json = counterexample (explainSchemaCounterexample json schema) (schema `validatesAll` [json])
+    p :: AE.Value -> Property
+    p json = counterexample (explainSchemaCounterexample json schema) (schema `validatesAll` [json])
       where schema = JSSC.jsonToSchema json

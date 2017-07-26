@@ -1,7 +1,8 @@
 module Utils
   (altMaybe, andMaybe,
   computeMaximumConstraints, computeMinimumConstraints,
-  zipWithPadding, listToMaybeList, printSchema)
+  zipWithPadding, listToMaybeList, printSchema,
+  setToMaybeSet)
   where
 
 import           Protolude
@@ -14,6 +15,7 @@ import qualified Data.Aeson               as AE
 import qualified Data.Aeson.Encode.Pretty as AEEP
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Scientific          as DS
+import qualified Data.Set                 as DS
 import qualified JSONSchema.Draft4        as D4
 import qualified Safe                     as S
 
@@ -75,3 +77,8 @@ zipWithPadding _ b xs     []     = zip xs (repeat b)
 listToMaybeList :: [a] -> Maybe [a]
 listToMaybeList [] = Nothing
 listToMaybeList xs = Just xs
+
+setToMaybeSet :: DS.Set a -> Maybe (DS.Set a)
+setToMaybeSet s
+  | DS.null s = Nothing
+  | otherwise = Just s
