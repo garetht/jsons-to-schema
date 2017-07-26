@@ -109,24 +109,27 @@ unifyRequiredConstraint nextSchema accSchema =
   accSchema {
     D4._schemaRequired = Utils.setToMaybeSet =<< intersected
   }
-  where intersected = DS.intersection <$> D4._schemaRequired nextSchema <*> D4._schemaRequired accSchema
-
+  where intersected = DS.intersection <$>
+                      D4._schemaRequired nextSchema <*>
+                      D4._schemaRequired accSchema
 
 unifyPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyPropertiesConstraint nextSchema accSchema =
-  accSchema { D4._schemaProperties =
-      linearUnifier
-        (HM.unionWith unifySchemas)
-        D4._schemaProperties
-        [nextSchema, accSchema]
+  accSchema {
+    D4._schemaProperties =
+      HM.unionWith unifySchemas <$>
+      D4._schemaProperties nextSchema <*>
+      D4._schemaProperties accSchema
   }
 
 unifyAdditionalPropertiesConstraint :: D4.Schema -> D4.Schema -> D4.Schema
 unifyAdditionalPropertiesConstraint nextSchema accSchema =
   accSchema {
     D4._schemaAdditionalProperties =
-      linearUnifier unify D4._schemaAdditionalProperties [nextSchema, accSchema]
-  }
+      unify <$>
+      D4._schemaAdditionalProperties nextSchema <*>
+      D4._schemaAdditionalProperties accSchema
+    }
   where
     unify ::
          V4Obj.AdditionalProperties D4.Schema
