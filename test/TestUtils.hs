@@ -11,21 +11,24 @@ module TestUtils
   , testUnifySchemas
   , testUnifySchemaTexts
   , printJson
+  , printJsonToString
+  , printSchemaToString
   ) where
 
-import Protolude
+import           Protolude
 
-import qualified Data.Aeson as AE
-import qualified Data.HashMap.Lazy as HM
-import qualified Data.Aeson.Encode.Pretty as AEEP
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified JSONSchema.Draft4 as D4
+import qualified Data.Aeson                        as AE
+import qualified Data.Aeson.Encode.Pretty          as AEEP
+import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.ByteString.Char8 as BSC
+import qualified Data.HashMap.Lazy                 as HM
+import qualified Data.Text                         as T
+import qualified Data.Text.Encoding                as TE
+import qualified JSONSchema.Draft4                 as D4
 
-import JSONSchema.SchemaConverter
-import JSONSchema.SchemaGenerationConfig
-import Test.Hspec
+import           JSONSchema.SchemaConverter
+import           JSONSchema.SchemaGenerationConfig
+import           Test.Hspec
 
 import qualified GHC.Base
 
@@ -41,6 +44,13 @@ printSchema = AEEP.encodePretty . AE.toJSON
 
 printJson :: AE.Value -> BSL.ByteString
 printJson = AEEP.encodePretty
+
+printJsonToString :: AE.Value -> GHC.Base.String
+printJsonToString = BSC.unpack . BSL.toStrict . printJson
+
+printSchemaToString :: D4.Schema -> GHC.Base.String
+printSchemaToString = BSC.unpack . BSL.toStrict . printSchema
+
 
 parseJson :: Text -> AE.Value
 parseJson json =

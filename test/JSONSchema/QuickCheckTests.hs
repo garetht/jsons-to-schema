@@ -1,10 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 module JSONSchema.QuickCheckTests where
 
 import           Protolude
 
 import qualified Data.Aeson                        as AE
+import qualified Data.ByteString.Char8             as BSC
+import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.HashMap.Lazy                 as HM
 import qualified Data.Set                          as Set
 import qualified Data.Text                         as T
@@ -12,6 +12,7 @@ import qualified Data.Vector                       as V
 import           JSONSchema.Draft4
 import           JSONSchema.Validator.Utils
 
+import qualified JSONSchema.Draft4                 as D4
 import           JSONSchema.SchemaConverter        as JSSC
 import           JSONSchema.SchemaGenerationConfig
 import           JSONSchema.Unifiers               as JU
@@ -20,8 +21,10 @@ import           Data.Generics.Uniplate.Data
 import           Test.Hspec
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances
+import qualified Test.QuickCheck.Property          as TQP
 import           TestUtils
 
+import qualified GHC.Base
 
 tupleTypedArrayConfig = defaultSchemaGenerationConfig {
   typeArraysAsTuples = True
@@ -57,8 +60,8 @@ simpleShrink (AE.Array a) = map (AE.Array . V.fromList) $ shrink $ V.toList a
 simpleShrink (AE.Object o) = map (AE.Object . HM.fromList) $ shrink $ HM.toList o
 simpleShrink _          = [] -- Nothing for simple objects
 
-sizedJsonProp :: Int -> (AE.Value -> Bool) -> Property
-sizedJsonProp size = forAll jsonGen
+sizedJsonProp :: Int -> (AE.Value -> Property) -> Property
+sizedJsonProp size = forAllShrink jsonGen (concatMap simpleShrink . universe)
   where
     jsonGen :: Gen AE.Value
     jsonGen = resize size arbitrary
@@ -161,6 +164,11 @@ instance Arbitrary RestrictedSchema where
                 , _schemaNot                  = e2
                 }
 
+
+explainSchemaCounterexample :: AE.Value -> D4.Schema -> GHC.Base.String
+explainSchemaCounterexample json schema =
+  "The JSON " <> printJsonToString json <> " does not validate against its generated schema " <> printSchemaToString schema
+
 testPropUnifyEmptySchemaRightIdentity :: Spec
 testPropUnifyEmptySchemaRightIdentity = it "will not change a restricted schema when an empty schema is passed in on the right" $
   property prop
@@ -177,7 +185,8 @@ testPropUnifyEmptySchemaLeftIdentity = it "will not change a restricted schema w
 
 testJsonToSchemaValidatesJson :: Spec
 testJsonToSchemaValidatesJson = it "will generate a schema that can validate the JSON used to generate the schema" $
-  property prop
+  sizedJsonProp 50 prop
   where
-    prop :: AE.Value -> Bool
-    prop json = JSSC.jsonToSchema json `validatesAll` [json]
+    prop :: AE.Value -> Property
+    prop json = counterexample (explainSchemaCounterexample json schema) (schema `validatesAll` [json])
+      where schema = JSSC.jsonToSchema json
