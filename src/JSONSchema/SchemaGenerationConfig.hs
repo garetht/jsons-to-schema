@@ -8,7 +8,8 @@ import           Test.QuickCheck (Arbitrary, Gen, sized, arbitrary)
 
 
 data SchemaGenerationConfig = SchemaGenerationConfig {
-    -- If set to True,
+    -- If set to True, each array will be considered a tuple, instead
+    -- of the entire array having a single type (i.e. Array<T>)
     typeArraysAsTuples   :: Bool
     -- If set to True, then when generating an object schema
     -- additionalProperties will be set to `false`, disallowing
