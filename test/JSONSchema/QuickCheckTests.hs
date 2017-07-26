@@ -35,9 +35,11 @@ sealedObjectPropertiesConfig = defaultSchemaGenerationConfig {
   sealObjectProperties = True
 }
 
+-- Arbitrary instance for Value from Reddit.
 instance Arbitrary AE.Value where
   arbitrary = sized sizedArbitraryValue
-  shrink = concatMap simpleShrink . universe
+  -- JSON shrinker borrowed from json-autotype
+  shrink = valueShrink
 
 sizedArbitraryValue :: Int -> Gen AE.Value
 sizedArbitraryValue n
@@ -56,15 +58,24 @@ sizedArbitraryValue n
         AE.Object <$> arbitrary
     ]
 
-simpleShrink           :: AE.Value -> [AE.Value]
+simpleShrink :: AE.Value -> [AE.Value]
 simpleShrink (AE.Array a) = map (AE.Array . V.fromList) $ shrink $ V.toList a
 simpleShrink (AE.Object o) = map (AE.Object . HM.fromList) $ shrink $ HM.toList o
-simpleShrink _          = [] -- Nothing for simple objects
+simpleShrink _ = [] -- Nothing for simple objects
+
+valueShrink :: AE.Value -> [AE.Value]
+valueShrink = concatMap simpleShrink . universe
 
 sizedJsonProp :: Int -> (AE.Value -> Property) -> Property
-sizedJsonProp size = forAllShrink jsonGen (concatMap simpleShrink . universe)
+sizedJsonProp size = forAllShrink jsonGen valueShrink
   where
     jsonGen :: Gen AE.Value
+    jsonGen = resize size arbitrary
+
+sizedJsonsProp :: Int -> ([AE.Value] -> Property) -> Property
+sizedJsonsProp size = forAllShrink jsonGen $ shrinkList valueShrink
+  where
+    jsonGen :: Gen [AE.Value]
     jsonGen = resize size arbitrary
 
 -- N.B. it is in general not true that the empty schema acts as the identity
@@ -166,11 +177,11 @@ instance Arbitrary RestrictedSchema where
                 }
 
 
-explainSchemaCounterexample :: AE.Value -> D4.Schema -> SchemaGenerationConfig -> GHC.Base.String
-explainSchemaCounterexample json schema config =
-  "The JSON " <>
-  printJsonToString json <>
-  " does not validate against its generated schema " <>
+explainSchemaCounterexample :: [AE.Value] -> D4.Schema -> SchemaGenerationConfig -> GHC.Base.String
+explainSchemaCounterexample jsons schema config =
+  "The JSONs " <>
+  foldr (<>) "" (fmap printJsonToString jsons) <>
+  " do not all validate against their generated schema " <>
   printSchemaToString schema <>
   " when run with configuration " <>
   show config
@@ -193,6 +204,14 @@ testJsonToSchemaWithConfigValidatesJson = modifyMaxSuccess (* 100) $ prop "will 
     configurer :: SchemaGenerationConfig -> Property
     configurer config = sizedJsonProp 10 (p config)
     p :: SchemaGenerationConfig -> AE.Value -> Property
-    p config json = counterexample (explainSchemaCounterexample json schema config) (schema `validatesAll` [json])
+    p config json = counterexample (explainSchemaCounterexample [json] schema config) (schema `validatesAll` [json])
       where schema = JSSC.jsonToSchemaWithConfig config json
 
+testSchemaUnifierValidatesAllJson :: Spec
+testSchemaUnifierValidatesAllJson = modifyMaxSuccess (* 100) $ prop "will generate a schema that validates all the JSON documents unified to produce it" configurer
+  where
+    configurer :: SchemaGenerationConfig -> Property
+    configurer config = sizedJsonsProp 10 (p config)
+    p :: SchemaGenerationConfig -> [AE.Value] -> Property
+    p config jsons = counterexample (explainSchemaCounterexample jsons schema config) (schema `validatesAll` jsons)
+      where schema = fromMaybe (panic "Could not parse schemas") (JSSC.jsonsToSchemaWithConfig config jsons)

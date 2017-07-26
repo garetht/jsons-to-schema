@@ -75,4 +75,5 @@ spec = do
     testPropUnifyEmptySchemaRightIdentity
     testPropUnifyEmptySchemaLeftIdentity
     testJsonToSchemaWithConfigValidatesJson
+    testSchemaUnifierValidatesAllJson
 
