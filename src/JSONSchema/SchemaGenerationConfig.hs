@@ -3,20 +3,31 @@ module JSONSchema.SchemaGenerationConfig
   , defaultSchemaGenerationConfig
   ) where
 
-import Protolude
+import           Protolude
+import           Test.QuickCheck (Arbitrary, Gen, sized, arbitrary)
+
 
 data SchemaGenerationConfig = SchemaGenerationConfig {
     -- If set to True,
-    typeArraysAsTuples :: Bool
+    typeArraysAsTuples   :: Bool
     -- If set to True, then when generating an object schema
     -- additionalProperties will be set to `false`, disallowing
     -- objects with additional properties to be validated against
     -- the same schema
   , sealObjectProperties :: Bool
-}
+} deriving (Show)
 
 defaultSchemaGenerationConfig :: SchemaGenerationConfig
 defaultSchemaGenerationConfig = SchemaGenerationConfig {
     typeArraysAsTuples = False
   , sealObjectProperties = False
 }
+
+instance Arbitrary SchemaGenerationConfig where
+  arbitrary = sized f
+    where
+      f :: Int -> Gen SchemaGenerationConfig
+      f n = do
+        b1 <- arbitrary
+        b2 <- arbitrary
+        pure $ SchemaGenerationConfig b1 b2

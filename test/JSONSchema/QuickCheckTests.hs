@@ -166,9 +166,14 @@ instance Arbitrary RestrictedSchema where
                 }
 
 
-explainSchemaCounterexample :: AE.Value -> D4.Schema -> GHC.Base.String
-explainSchemaCounterexample json schema =
-  "The JSON " <> printJsonToString json <> " does not validate against its generated schema " <> printSchemaToString schema
+explainSchemaCounterexample :: AE.Value -> D4.Schema -> SchemaGenerationConfig -> GHC.Base.String
+explainSchemaCounterexample json schema config =
+  "The JSON " <>
+  printJsonToString json <>
+  " does not validate against its generated schema " <>
+  printSchemaToString schema <>
+  " when run with configuration " <>
+  show config
 
 testPropUnifyEmptySchemaRightIdentity :: Spec
 testPropUnifyEmptySchemaRightIdentity = prop "will not change a restricted schema when an empty schema is passed in on the right" p
@@ -182,10 +187,12 @@ testPropUnifyEmptySchemaLeftIdentity = prop "will not change a restricted schema
     p :: RestrictedSchema -> Bool
     p rs = JU.unifySchemas emptySchema (getSchema rs) == getSchema rs
 
-testJsonToSchemaValidatesJson :: Spec
-testJsonToSchemaValidatesJson = modifyMaxSuccess (* 5) $ it "will generate a schema that can validate the JSON used to generate the schema" $
-  sizedJsonProp 50 p
+testJsonToSchemaWithConfigValidatesJson :: Spec
+testJsonToSchemaWithConfigValidatesJson = modifyMaxSuccess (* 100) $ prop "will generate a schema that can validate the JSON used to generate the schema with a randomized configuration" configurer
   where
-    p :: AE.Value -> Property
-    p json = counterexample (explainSchemaCounterexample json schema) (schema `validatesAll` [json])
-      where schema = JSSC.jsonToSchema json
+    configurer :: SchemaGenerationConfig -> Property
+    configurer config = sizedJsonProp 10 (p config)
+    p :: SchemaGenerationConfig -> AE.Value -> Property
+    p config json = counterexample (explainSchemaCounterexample json schema config) (schema `validatesAll` [json])
+      where schema = JSSC.jsonToSchemaWithConfig config json
+
