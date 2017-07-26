@@ -26,8 +26,8 @@ import qualified Data.Text                         as T
 import qualified Data.Text.Encoding                as TE
 import qualified JSONSchema.Draft4                 as D4
 
-import           JSONSchema.SchemaConverter
-import           JSONSchema.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaGeneration
+import           JSONSchema.Draft4.SchemaGenerationConfig
 import           Test.Hspec
 
 import qualified GHC.Base

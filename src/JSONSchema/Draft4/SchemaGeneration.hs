@@ -1,4 +1,4 @@
-module JSONSchema.SchemaConverter
+module JSONSchema.Draft4.SchemaGeneration
   ( jsonToSchema
   , jsonToSchemaWithConfig
   , jsonsToSchema
@@ -9,27 +9,27 @@ module JSONSchema.SchemaConverter
 
 import           Protolude
 
-import           JSONSchema.Unifiers               (unifySchemas)
+import           JSONSchema.Draft4.SchemaUnification      (unifySchemas)
 
-import qualified Data.Aeson                        as AE
-import qualified Data.ByteString                   as BS
-import qualified Data.ByteString.Lazy              as BSL
-import qualified Data.HashMap.Lazy                 as HM
-import qualified Data.List.NonEmpty                as NE
-import qualified Data.Set                          as DS
-import qualified Data.Vector                       as V
-import qualified JSONSchema.Draft4                 as D4
+import qualified Data.Aeson                               as AE
+import qualified Data.ByteString                          as BS
+import qualified Data.ByteString.Lazy                     as BSL
+import qualified Data.HashMap.Lazy                        as HM
+import qualified Data.List.NonEmpty                       as NE
+import qualified Data.Scientific                          as DSC
+import qualified Data.Set                                 as DST
+import qualified Data.Vector                              as V
+import qualified JSONSchema.Draft4                        as D4
 
-import qualified JSONSchema.Validator.Draft4.Any   as V4A
-import qualified JSONSchema.Validator.Draft4.Array as V4Arr
-import qualified JSONSchema.Validator.Draft4.Object as V4Obj
+import qualified JSONSchema.Validator.Draft4.Any          as V4A
+import qualified JSONSchema.Validator.Draft4.Array        as V4Arr
+import qualified JSONSchema.Validator.Draft4.Object       as V4Obj
 
-import qualified Data.Scientific                   as DS
-import qualified Safe                              as S
-import qualified Safe.Foldable                     as SF
+import qualified Safe                                     as S
+import qualified Safe.Foldable                            as SF
 
-import qualified Utils
-import JSONSchema.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaGenerationConfig
+import qualified JSONSchema.Draft4.Internal.Utils as Utils
 
 
 makeBasicTypeSchema :: V4A.SchemaType -> D4.Schema
@@ -50,7 +50,7 @@ makeObjectSchema c o =
     -- make sure that a _schemaRequired of Nothing will eliminate all other
     -- specified required properties, i.e. if an object does not require any
     -- properties, than no other object can either.
-    requireds = fmap DS.fromList . Utils.listToMaybeList . HM.keys
+    requireds = fmap DST.fromList . Utils.listToMaybeList . HM.keys
     properties :: HM.HashMap Text AE.Value -> Maybe (HM.HashMap Text D4.Schema)
     properties = Just . map (jsonToSchemaWithConfig c)
     -- Make objects unable to accept additional properties if specified by the user
@@ -83,7 +83,7 @@ makeArrayAsSingleSchema c xs =
   }
 
 jsonToSchemaWithConfig :: SchemaGenerationConfig -> AE.Value -> D4.Schema
-jsonToSchemaWithConfig c (AE.Number n) = makeBasicTypeSchema (if DS.isInteger n then V4A.SchemaInteger else V4A.SchemaNumber)
+jsonToSchemaWithConfig c (AE.Number n) = makeBasicTypeSchema (if DSC.isInteger n then V4A.SchemaInteger else V4A.SchemaNumber)
 jsonToSchemaWithConfig c (AE.String s) = makeBasicTypeSchema V4A.SchemaString
 jsonToSchemaWithConfig c (AE.Bool s)   = makeBasicTypeSchema V4A.SchemaBoolean
 jsonToSchemaWithConfig c AE.Null       = makeBasicTypeSchema V4A.SchemaNull

@@ -1,28 +1,25 @@
-module JSONSchema.SchemaGenerationConfig
+module JSONSchema.Draft4.SchemaGenerationConfig
   ( SchemaGenerationConfig(..)
   , defaultSchemaGenerationConfig
   ) where
 
 import           Protolude
-import           Test.QuickCheck (Arbitrary, Gen, sized, arbitrary)
+import           Test.QuickCheck (Arbitrary, Gen, arbitrary, sized)
 
-
-data SchemaGenerationConfig = SchemaGenerationConfig {
+data SchemaGenerationConfig = SchemaGenerationConfig
     -- If set to True, each array will be considered a tuple, instead
     -- of the entire array having a single type (i.e. Array<T>)
-    typeArraysAsTuples   :: Bool
+  { typeArraysAsTuples   :: Bool
     -- If set to True, then when generating an object schema
     -- additionalProperties will be set to `false`, disallowing
     -- objects with additional properties to be validated against
     -- the same schema
   , sealObjectProperties :: Bool
-} deriving (Show)
+  } deriving (Show)
 
 defaultSchemaGenerationConfig :: SchemaGenerationConfig
-defaultSchemaGenerationConfig = SchemaGenerationConfig {
-    typeArraysAsTuples = False
-  , sealObjectProperties = False
-}
+defaultSchemaGenerationConfig =
+  SchemaGenerationConfig {typeArraysAsTuples = False, sealObjectProperties = False}
 
 instance Arbitrary SchemaGenerationConfig where
   arbitrary = sized f

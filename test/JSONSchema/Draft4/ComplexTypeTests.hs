@@ -1,36 +1,37 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module JSONSchema.ComplexTypeTests where
+module JSONSchema.Draft4.ComplexTypeTests where
 
-import           JSONSchema.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaGenerationConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec
 import           TestUtils
 
-tupleTypedArrayConfig = defaultSchemaGenerationConfig {
-  typeArraysAsTuples = True
-}
+tupleTypedArrayConfig =
+  defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 
-sealedObjectPropertiesConfig = defaultSchemaGenerationConfig {
-  sealObjectProperties = True
-}
+sealedObjectPropertiesConfig =
+  defaultSchemaGenerationConfig {sealObjectProperties = True}
 
 testSingleEmptyObject :: Spec
-testSingleEmptyObject = it "can generate the schema for a single empty object" $
-    let j1 = [text| {} |]
-        expected = [text| {"type": "object", "properties": {}} |]
-    in
-        testJsonsToSchema [j1] expected
+testSingleEmptyObject =
+  it "can generate the schema for a single empty object" $
+  let j1 = [text| {} |]
+      expected = [text| {"type": "object", "properties": {}} |]
+  in testJsonsToSchema [j1] expected
 
 testSingleBasicObject :: Spec
-testSingleBasicObject = it "can generate the schema for a single basic object" $
-    let j1 = [text| {
+testSingleBasicObject =
+  it "can generate the schema for a single basic object" $
+  let j1 =
+        [text| {
                       "Red Windsor": "Normally, but today the van broke down.",
                       "Stilton": "Sorry.",
                       "Gruyere": false
                     } |]
-        expected = [text| {
+      expected =
+        [text| {
                             "required": ["Gruyere", "Red Windsor", "Stilton"],
                             "type": "object",
                             "properties": {
@@ -39,17 +40,20 @@ testSingleBasicObject = it "can generate the schema for a single basic object" $
                                 "Stilton": {"type": "string"}
                             }
                           } |]
-    in
-        testJsonsToSchema [j1] expected
+  in testJsonsToSchema [j1] expected
 
 testSingleBasicObjectSealingProperties :: Spec
-testSingleBasicObjectSealingProperties = it "can generate the schema for a single basic object while sealing properties" $
-    let j1 = [text| {
+testSingleBasicObjectSealingProperties =
+  it
+    "can generate the schema for a single basic object while sealing properties" $
+  let j1 =
+        [text| {
                       "Red Windsor": "Normally, but today the van broke down.",
                       "Stilton": "Sorry.",
                       "Gruyere": false
                     } |]
-        expected = [text| {
+      expected =
+        [text| {
                             "required": ["Gruyere", "Red Windsor", "Stilton"],
                             "type": "object",
                             "properties": {
@@ -59,13 +63,14 @@ testSingleBasicObjectSealingProperties = it "can generate the schema for a singl
                             },
                             "additionalProperties": false
                           } |]
-    in
-        testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
+  in testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
 
 testComplexArrayInObject :: Spec
-testComplexArrayInObject = it "can generate the schema for arrays that are in objects" $
-    let j1 = [text| {"a": "b", "c": [1, 2, 3]} |]
-        expected = [text| {
+testComplexArrayInObject =
+  it "can generate the schema for arrays that are in objects" $
+  let j1 = [text| {"a": "b", "c": [1, 2, 3]} |]
+      expected =
+        [text| {
                             "required": ["a", "c"],
                             "type": "object",
                             "properties": {
@@ -77,12 +82,13 @@ testComplexArrayInObject = it "can generate the schema for arrays that are in ob
                             }
                           }
                     |]
-    in
-        testJsonsToSchema [j1] expected
+  in testJsonsToSchema [j1] expected
 
 testComplexObjectInArray :: Spec
-testComplexObjectInArray = it "can generate the schema for objects that are in arrays" $
-    let j1 = [text| [
+testComplexObjectInArray =
+  it "can generate the schema for objects that are in arrays" $
+  let j1 =
+        [text| [
                       {"name": "Sir Lancelot of Camelot",
                        "quest": "to seek the Holy Grail",
                        "favorite colour": "blue"},
@@ -91,7 +97,8 @@ testComplexObjectInArray = it "can generate the schema for objects that are in a
                        "capitol of Assyria": null
                        }]
              |]
-        expected = [text| {
+      expected =
+        [text| {
                               "type": "array",
                               "items": {
                                   "type": "object",
@@ -105,12 +112,14 @@ testComplexObjectInArray = it "can generate the schema for objects that are in a
                               }
                           }
                     |]
-    in
-        testJsonsToSchema [j1] expected
+  in testJsonsToSchema [j1] expected
 
 testComplexObjectInArraySealingProperties :: Spec
-testComplexObjectInArraySealingProperties = it "can generate the schema for objects that are in arrays while sealing properties" $
-    let j1 = [text| [
+testComplexObjectInArraySealingProperties =
+  it
+    "can generate the schema for objects that are in arrays while sealing properties" $
+  let j1 =
+        [text| [
                       {"name": "Sir Lancelot of Camelot",
                        "quest": "to seek the Holy Grail",
                        "favorite colour": "blue"},
@@ -119,7 +128,8 @@ testComplexObjectInArraySealingProperties = it "can generate the schema for obje
                        "capitol of Assyria": null
                        }]
              |]
-        expected = [text| {
+      expected =
+        [text| {
                               "type": "array",
                               "items": {
                                   "type": "object",
@@ -134,13 +144,14 @@ testComplexObjectInArraySealingProperties = it "can generate the schema for obje
                               }
                           }
                     |]
-    in
-        testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
+  in testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
 
 testComplexThreeDeepObject :: Spec
-testComplexThreeDeepObject = it "can generate the schema for a deeply nested object" $
-    let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
-        expected = [text| {
+testComplexThreeDeepObject =
+  it "can generate the schema for a deeply nested object" $
+  let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
+      expected =
+        [text| {
                             "type": "object",
                             "required": ["matryoshka"],
                             "properties": {
@@ -160,13 +171,15 @@ testComplexThreeDeepObject = it "can generate the schema for a deeply nested obj
                             }
                         }
                     |]
-    in
-        testJsonsToSchema [j1] expected
+  in testJsonsToSchema [j1] expected
 
 testComplexThreeDeepObjectSealingProperties :: Spec
-testComplexThreeDeepObjectSealingProperties = it "can generate the schema for a deeply nested object while sealing properties" $
-    let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
-        expected = [text| {
+testComplexThreeDeepObjectSealingProperties =
+  it
+    "can generate the schema for a deeply nested object while sealing properties" $
+  let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
+      expected =
+        [text| {
                             "type": "object",
                             "required": ["matryoshka"],
                             "properties": {
@@ -189,20 +202,21 @@ testComplexThreeDeepObjectSealingProperties = it "can generate the schema for a 
                             "additionalProperties": false
                         }
                     |]
-    in
-        testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
+  in testJsonsToSchemaWithConfig sealedObjectPropertiesConfig [j1] expected
 
 testMultipleEmptyObjects :: Spec
-testMultipleEmptyObjects = it "can generate the schema for multiple empty objects" $
-    let j1 = [text| {} |]
-        j2 = [text| {} |]
-        expected = [text| {"type": "object", "properties": {}} |]
-    in
-        testJsonsToSchema [j1, j2] expected
+testMultipleEmptyObjects =
+  it "can generate the schema for multiple empty objects" $
+  let j1 = [text| {} |]
+      j2 = [text| {} |]
+      expected = [text| {"type": "object", "properties": {}} |]
+  in testJsonsToSchema [j1, j2] expected
 
 testEdgeCaseNestedSchema :: Spec
-testEdgeCaseNestedSchema = it "can generate the schema for strangely nested objects" $
-    let j1 = [text| [
+testEdgeCaseNestedSchema =
+  it "can generate the schema for strangely nested objects" $
+  let j1 =
+        [text| [
                         [
                             null,
                             [
@@ -214,7 +228,8 @@ testEdgeCaseNestedSchema = it "can generate the schema for strangely nested obje
                             "!": false
                         }
                     ] |]
-        expected = [text|
+      expected =
+        [text|
           {
             "items": {
                 "items": {
@@ -239,5 +254,4 @@ testEdgeCaseNestedSchema = it "can generate the schema for strangely nested obje
             "type": "array"
           }
          |]
-    in
-        testJsonsToSchemaPretty [j1] expected
+  in testJsonsToSchemaPretty [j1] expected

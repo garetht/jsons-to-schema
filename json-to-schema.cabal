@@ -2,7 +2,7 @@ name:                json-to-schema
 version:             0.1.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/garetht/json-to-schema#readme
+homepage:            https://github.com/garetht/json-to-schema/README.md
 license:             BSD3
 license-file:        LICENSE
 author:              Gareth Tan
@@ -18,11 +18,10 @@ library
   default-extensions:
     OverloadedStrings
     NoImplicitPrelude
-  exposed-modules:     Lib
-                     , JSONSchema.SchemaConverter
-                     , JSONSchema.Unifiers
-                     , JSONSchema.SchemaGenerationConfig
-                     , Utils
+  exposed-modules:     JSONSchema.Draft4.SchemaGeneration
+                     , JSONSchema.Draft4.SchemaUnification
+                     , JSONSchema.Draft4.SchemaGenerationConfig
+                     , JSONSchema.Draft4.Internal.Utils
   build-depends:       base >= 4.7 && < 5
                      , hjsonschema
                      , text
@@ -51,12 +50,12 @@ executable json-to-schema-exe
 test-suite json-to-schema-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
-  other-modules:       JSONSchema.SchemaConverterSpec
-                     , JSONSchema.BasicTypeTests
-                     , JSONSchema.ArrayTypeTests
-                     , JSONSchema.ComplexTypeTests
-                     , JSONSchema.QuickCheckTests
-                     , JSONSchema.UnifiersSpec
+  other-modules:       JSONSchema.Draft4.SchemaConverterSpec
+                     , JSONSchema.Draft4.BasicTypeTests
+                     , JSONSchema.Draft4.ArrayTypeTests
+                     , JSONSchema.Draft4.ComplexTypeTests
+                     , JSONSchema.Draft4.QuickCheckTests
+                     , JSONSchema.Draft4.UnifiersSpec
                      , TestUtils
                      , UtilsSpec
   main-is:             Spec.hs

@@ -1,24 +1,24 @@
-module JSONSchema.Unifiers
+module JSONSchema.Draft4.SchemaUnification
   ( unifySchemas
   ) where
 
-import           Protolude                          hiding ((<>))
+import           Protolude                               hiding ((<>))
 
-import qualified Data.HashMap.Lazy                  as HM
-import qualified Data.Set                           as DS
-import qualified Data.Vector                        as V
-import qualified JSONSchema.Draft4                  as D4
+import qualified Data.HashMap.Lazy                       as HM
+import qualified Data.Set                                as DS
+import qualified Data.Vector                             as V
+import qualified JSONSchema.Draft4                       as D4
 
-import qualified JSONSchema.Validator.Draft4.Any    as V4A
-import qualified JSONSchema.Validator.Draft4.Array  as V4Arr
-import qualified JSONSchema.Validator.Draft4.Object as V4Obj
+import qualified JSONSchema.Validator.Draft4.Any         as V4A
+import qualified JSONSchema.Validator.Draft4.Array       as V4Arr
+import qualified JSONSchema.Validator.Draft4.Object      as V4Obj
 
-import qualified Data.Scientific                    as DS
-import           Data.Semigroup                     (Semigroup, (<>))
-import qualified Safe                               as S
-import qualified Safe.Foldable                      as SF
+import qualified Data.Scientific                         as DS
+import           Data.Semigroup                          (Semigroup, (<>))
+import qualified Safe                                    as S
+import qualified Safe.Foldable                           as SF
 
-import qualified Utils
+import qualified JSONSchema.Draft4.Internal.Utils as Utils
 
 unifySchemas :: D4.Schema -> D4.Schema -> D4.Schema
 unifySchemas nextSchema =
