@@ -2,7 +2,6 @@
 
 module JSONSchema.Draft4.BasicTypeTests where
 
-import           JSONSchema.Draft4.SchemaGenerationConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec

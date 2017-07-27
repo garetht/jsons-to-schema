@@ -8,6 +8,7 @@ import           Protolude
 import           Test.Hspec
 import           TestUtils
 
+tupleTypedArrayConfig :: SchemaGenerationConfig
 tupleTypedArrayConfig =
   defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 

@@ -1,22 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 module UtilsSpec where
 
 import           Data.Scientific
-import qualified JSONSchema.Draft4                  as D4
-import           JSONSchema.Draft4.SchemaGeneration
-import qualified JSONSchema.Validator.Draft4.Any    as V4A
 import           JSONSchema.Draft4.Internal.Utils
 import           Test.Hspec
 
-import           NeatInterpolation
 import           Protolude
-
-import qualified Data.Aeson                         as AE
-import qualified Data.Aeson.Encode.Pretty           as AEEP
-import qualified Data.ByteString.Lazy               as BSL
-import qualified Data.Text                          as T
-import qualified Data.Text.Encoding                 as TE
 
 spec :: Spec
 spec = do

@@ -3,18 +3,10 @@
 module JSONSchema.Draft4.UnifiersSpec where
 
 import           JSONSchema.Draft4
-import           JSONSchema.Draft4.ArrayTypeTests
-import           JSONSchema.Draft4.BasicTypeTests
-import           JSONSchema.Draft4.ComplexTypeTests
-import           JSONSchema.Draft4.QuickCheckTests
-import           JSONSchema.Draft4.SchemaGenerationConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec
-import           Test.QuickCheck
 import           TestUtils
-
-import           Prelude                                  (read)
 
 testUnifyEmptySchemas :: Spec
 testUnifyEmptySchemas =

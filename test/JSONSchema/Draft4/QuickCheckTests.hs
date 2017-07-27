@@ -3,11 +3,7 @@ module JSONSchema.Draft4.QuickCheckTests where
 import           Protolude
 
 import qualified Data.Aeson                               as AE
-import qualified Data.ByteString.Char8                    as BSC
-import qualified Data.ByteString.Lazy                     as BSL
 import qualified Data.HashMap.Lazy                        as HM
-import qualified Data.Set                                 as Set
-import qualified Data.Text                                as T
 import qualified Data.Vector                              as V
 import           JSONSchema.Draft4
 import           JSONSchema.Validator.Utils
@@ -21,15 +17,16 @@ import           Data.Generics.Uniplate.Data
 import           Test.Hspec
 import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
-import           Test.QuickCheck.Instances
-import qualified Test.QuickCheck.Property                 as TQP
+import           Test.QuickCheck.Instances                ()
 import           TestUtils
 
 import qualified GHC.Base
 
+tupleTypedArrayConfig :: SchemaGenerationConfig
 tupleTypedArrayConfig =
   defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 
+sealedObjectPropertiesConfig :: SchemaGenerationConfig
 sealedObjectPropertiesConfig =
   defaultSchemaGenerationConfig {sealObjectProperties = True}
 

@@ -22,7 +22,6 @@ import qualified Data.Aeson.Encode.Pretty          as AEEP
 import qualified Data.ByteString.Lazy              as BSL
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.HashMap.Lazy                 as HM
-import qualified Data.Text                         as T
 import qualified Data.Text.Encoding                as TE
 import qualified JSONSchema.Draft4                 as D4
 

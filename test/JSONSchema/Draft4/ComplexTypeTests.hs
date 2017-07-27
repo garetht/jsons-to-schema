@@ -8,9 +8,11 @@ import           Protolude
 import           Test.Hspec
 import           TestUtils
 
+tupleTypedArrayConfig :: SchemaGenerationConfig
 tupleTypedArrayConfig =
   defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 
+sealedObjectPropertiesConfig :: SchemaGenerationConfig
 sealedObjectPropertiesConfig =
   defaultSchemaGenerationConfig {sealObjectProperties = True}
 

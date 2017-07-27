@@ -1,16 +1,11 @@
 module JSONSchema.Draft4.SchemaConverterSpec where
 
-import           JSONSchema.Draft4
 import           JSONSchema.Draft4.ArrayTypeTests
 import           JSONSchema.Draft4.BasicTypeTests
 import           JSONSchema.Draft4.ComplexTypeTests
 import           JSONSchema.Draft4.QuickCheckTests
-import           JSONSchema.Draft4.SchemaGenerationConfig
-import           NeatInterpolation
 import           Protolude
 import           Test.Hspec
-import           Test.QuickCheck
-import           TestUtils
 
 -- Many of these tests are borrowed from Python's GenSON
 -- https://github.com/wolverdude/GenSON
