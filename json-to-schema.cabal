@@ -58,6 +58,7 @@ test-suite json-to-schema-test
                      , JSONSchema.Draft4.ArrayTypeTests
                      , JSONSchema.Draft4.ComplexTypeTests
                      , JSONSchema.Draft4.QuickCheckTests
+                     , JSONSchema.Draft4.QuickCheckInstances
                      , JSONSchema.Draft4.UnifiersSpec
                      , TestUtils
                      , UtilsSpec

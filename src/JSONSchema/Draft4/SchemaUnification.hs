@@ -44,10 +44,6 @@ altUnifier binF getter next acc = applied <|> getter next <|> getter acc
 applicativeUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
 applicativeUnifier binF getter next acc = binF <$> getter next <*> getter acc
 
--- Whether the Schema currently has the SchemaType
-hasType :: V4A.SchemaType -> D4.Schema -> Bool
-hasType t s = Utils.alt (<>) originalType (Just $ V4A.TypeValidatorString t) == originalType
-  where originalType = D4._schemaType s
 
 unifyNonvalidatingConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifyNonvalidatingConstraints nextSchema accSchema = accSchema {

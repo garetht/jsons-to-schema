@@ -15,7 +15,7 @@ Other helpful functions are `jsonToSchema`, which transforms a single document, 
 The schema generator should satisfy these properties:
 
 - An schema generated from a JSON document will always be able to validate that JSON document.
-- When a schema is merged with another schema, all objects that would validate under either schema will validate under the merged schema regardless of merge order.
+- When a schema is merged with another schema, all objects that would validate under either schema, subject to the assumptions below, will validate under the merged schema regardless of merge order.
 
 Unlike other generators strictness is meant to be customizable. Whether to allow additional properties in schema objects is something that the user can turn on and off.
 

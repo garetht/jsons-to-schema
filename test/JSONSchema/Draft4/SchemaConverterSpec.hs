@@ -57,5 +57,6 @@ spec = do
   describe "Schema Properties" $ do
     testPropUnifyEmptySchemaRightIdentity
     testPropUnifyEmptySchemaLeftIdentity
-    testJsonToSchemaWithConfigValidatesJson
-    testSchemaUnificationValidatesAllJson
+    testSchemaUnificationCommutative
+--     testJsonToSchemaWithConfigValidatesJson
+--     testSchemaUnificationValidatesAllJson
