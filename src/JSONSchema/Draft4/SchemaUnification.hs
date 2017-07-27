@@ -2,19 +2,20 @@ module JSONSchema.Draft4.SchemaUnification
   ( unifySchemas
   ) where
 
-import           Protolude                               hiding ((<>))
+import           Protolude                          hiding ((<>))
 
-import qualified Data.HashMap.Lazy                       as HM
-import qualified Data.Set                                as DS
-import qualified JSONSchema.Draft4                       as D4
+import qualified Data.HashMap.Lazy                  as HM
+import qualified Data.Set                           as DS
+import qualified JSONSchema.Draft4                  as D4
 
-import qualified JSONSchema.Validator.Draft4.Array       as V4Arr
-import qualified JSONSchema.Validator.Draft4.Object      as V4Obj
+import qualified JSONSchema.Validator.Draft4.Any    as V4A
+import qualified JSONSchema.Validator.Draft4.Array  as V4Arr
+import qualified JSONSchema.Validator.Draft4.Object as V4Obj
 
-import           Data.Semigroup                          ((<>))
-import qualified Safe                                    as S
+import           Data.Semigroup                     ((<>))
+import qualified Safe                               as S
 
-import qualified JSONSchema.Draft4.Internal.Utils as Utils
+import qualified JSONSchema.Draft4.Internal.Utils   as Utils
 
 unifySchemas :: D4.Schema -> D4.Schema -> D4.Schema
 unifySchemas nextSchema =
@@ -33,24 +34,29 @@ unifySchemas nextSchema =
 -- the foldr1 fails and we get Nothing. Otherwise, the present Just
 -- values are folded together using foldF.
 
---The linear unifier applies the binary function if both are Just, returns the identity
+--The alternative unifier applies the binary function if both are Just, returns the identity
 -- if only one is Just, and Nothing if both are Nothing.
-linearUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
-linearUnifier foldF getter next acc = S.foldr1May foldF . catMaybes $ fmap getter [next, acc]
+altUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
+altUnifier binF getter next acc = applied <|> getter next <|> getter acc
+  where applied = applicativeUnifier binF getter next acc
 
 -- The applicative unifier applies the binary function but returns Nothing if either
 -- is Nothing in the manner of an applicative.
 applicativeUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
 applicativeUnifier binF getter next acc = binF <$> getter next <*> getter acc
 
+-- Whether the Schema currently has the SchemaType
+hasType :: V4A.SchemaType -> D4.Schema -> Bool
+hasType t s = Utils.alt (<>) originalType (Just $ V4A.TypeValidatorString t) == originalType
+  where originalType = D4._schemaType s
 
 unifyNonvalidatingConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifyNonvalidatingConstraints nextSchema accSchema = accSchema {
-      D4._schemaVersion = linearUnifier const D4._schemaVersion nextSchema accSchema
-    , D4._schemaId = linearUnifier const D4._schemaId nextSchema accSchema
-    , D4._schemaRef = linearUnifier const D4._schemaRef nextSchema accSchema
-    , D4._schemaDefinitions = linearUnifier const D4._schemaDefinitions nextSchema accSchema
-    , D4._schemaDependencies = linearUnifier const D4._schemaDependencies nextSchema accSchema
+      D4._schemaVersion = altUnifier const D4._schemaVersion nextSchema accSchema
+    , D4._schemaId = altUnifier const D4._schemaId nextSchema accSchema
+    , D4._schemaRef = altUnifier const D4._schemaRef nextSchema accSchema
+    , D4._schemaDefinitions = altUnifier const D4._schemaDefinitions nextSchema accSchema
+    , D4._schemaDependencies = altUnifier const D4._schemaDependencies nextSchema accSchema
     , D4._schemaOther = foldr HM.union HM.empty (fmap D4._schemaOther [nextSchema, accSchema])
   }
 
@@ -61,7 +67,7 @@ unifyNumericConstraints nextSchema accSchema =
        , D4._schemaExclusiveMaximum = emaxConstraint
        , D4._schemaMinimum = minConstraint
        , D4._schemaExclusiveMinimum = eminConstraint
-       , D4._schemaMultipleOf = linearUnifier const D4._schemaMultipleOf nextSchema accSchema
+       , D4._schemaMultipleOf = altUnifier const D4._schemaMultipleOf nextSchema accSchema
        }
   where
     schemas = [nextSchema, accSchema]
@@ -76,28 +82,28 @@ unifyNumericConstraints nextSchema accSchema =
 
 unifyStringConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifyStringConstraints nextSchema accSchema = accSchema {
-      D4._schemaMaxLength = linearUnifier max D4._schemaMaxLength nextSchema accSchema
-    , D4._schemaMinLength = linearUnifier min D4._schemaMinLength nextSchema accSchema
-    , D4._schemaPattern = linearUnifier const D4._schemaPattern nextSchema accSchema
+      D4._schemaMaxLength = altUnifier max D4._schemaMaxLength nextSchema accSchema
+    , D4._schemaMinLength = altUnifier min D4._schemaMinLength nextSchema accSchema
+    , D4._schemaPattern = altUnifier const D4._schemaPattern nextSchema accSchema
   }
 
 unifyArrayConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifyArrayConstraints nextSchema accSchema = accSchema {
-      D4._schemaItems = linearUnifier unifyItems D4._schemaItems nextSchema accSchema
-    , D4._schemaAdditionalItems = linearUnifier unify D4._schemaAdditionalItems nextSchema accSchema
-    , D4._schemaMaxItems = linearUnifier max D4._schemaMaxItems nextSchema accSchema
-    , D4._schemaMinItems = linearUnifier min D4._schemaMinItems nextSchema accSchema
-    , D4._schemaUniqueItems = linearUnifier (&&) D4._schemaUniqueItems nextSchema accSchema
+      D4._schemaItems = altUnifier unifyItems D4._schemaItems nextSchema accSchema
+    , D4._schemaAdditionalItems = altUnifier uAdditional D4._schemaAdditionalItems nextSchema accSchema
+    , D4._schemaMaxItems = altUnifier max D4._schemaMaxItems nextSchema accSchema
+    , D4._schemaMinItems = altUnifier min D4._schemaMinItems nextSchema accSchema
+    , D4._schemaUniqueItems = altUnifier (&&) D4._schemaUniqueItems nextSchema accSchema
   }
   where
-    unify :: V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema
-    unify (V4Arr.AdditionalBool b1) (V4Arr.AdditionalBool b2) =
+    uAdditional :: V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema -> V4Arr.AdditionalItems D4.Schema
+    uAdditional (V4Arr.AdditionalBool b1) (V4Arr.AdditionalBool b2) =
       V4Arr.AdditionalBool $ b1 || b2
     -- allowing additional objects (True) is always at least as permissive as any schema
     -- all schemas are at least as permissive as not allowing any additional objects (False)
-    unify bln@(V4Arr.AdditionalBool b) obj@(V4Arr.AdditionalObject s) = if b then bln else obj
-    unify obj@(V4Arr.AdditionalObject s) bln@(V4Arr.AdditionalBool b) = if b then bln else obj
-    unify (V4Arr.AdditionalObject o1) (V4Arr.AdditionalObject o2) =
+    uAdditional bln@(V4Arr.AdditionalBool b) obj@(V4Arr.AdditionalObject s) = if b then bln else obj
+    uAdditional obj@(V4Arr.AdditionalObject s) bln@(V4Arr.AdditionalBool b) = if b then bln else obj
+    uAdditional (V4Arr.AdditionalObject o1) (V4Arr.AdditionalObject o2) =
       V4Arr.AdditionalObject $ unifySchemas o1 o2
 
     unifyItems :: V4Arr.Items D4.Schema -> V4Arr.Items D4.Schema -> V4Arr.Items D4.Schema
@@ -114,12 +120,12 @@ unifyObjectConstraints nextSchema accSchema = accSchema {
       D4._schemaRequired = Utils.setToMaybeSet =<< -- to avoid empty lists, which are not allowed
         applicativeUnifier DS.intersection D4._schemaRequired nextSchema accSchema
     , D4._schemaProperties =
-            linearUnifier (HM.unionWith unifySchemas) D4._schemaProperties nextSchema accSchema
+            altUnifier (HM.unionWith unifySchemas) D4._schemaProperties nextSchema accSchema
     , D4._schemaAdditionalProperties =
-           linearUnifier unify D4._schemaAdditionalProperties nextSchema accSchema
-    , D4._schemaMaxProperties = linearUnifier max D4._schemaMaxProperties nextSchema accSchema
-    , D4._schemaMinProperties = linearUnifier min D4._schemaMinProperties nextSchema accSchema
-    , D4._schemaPatternProperties = linearUnifier HM.union D4._schemaPatternProperties nextSchema accSchema
+           altUnifier unify D4._schemaAdditionalProperties nextSchema accSchema
+    , D4._schemaMaxProperties = altUnifier max D4._schemaMaxProperties nextSchema accSchema
+    , D4._schemaMinProperties = altUnifier min D4._schemaMinProperties nextSchema accSchema
+    , D4._schemaPatternProperties = altUnifier HM.union D4._schemaPatternProperties nextSchema accSchema
   }
   where
     unify :: V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema
@@ -134,10 +140,10 @@ unifyObjectConstraints nextSchema accSchema = accSchema {
 
 unifyAnyInstanceConstraints :: D4.Schema -> D4.Schema -> D4.Schema
 unifyAnyInstanceConstraints nextSchema accSchema = accSchema {
-      D4._schemaType = linearUnifier (<>) D4._schemaType nextSchema accSchema
-    , D4._schemaEnum = linearUnifier const D4._schemaEnum nextSchema accSchema
-    , D4._schemaAllOf = linearUnifier const D4._schemaAllOf nextSchema accSchema
-    , D4._schemaAnyOf = linearUnifier const D4._schemaAnyOf nextSchema accSchema
-    , D4._schemaOneOf = linearUnifier const D4._schemaOneOf nextSchema accSchema
-    , D4._schemaNot = linearUnifier const D4._schemaNot nextSchema accSchema
+      D4._schemaType = altUnifier (<>) D4._schemaType nextSchema accSchema
+    , D4._schemaEnum = altUnifier const D4._schemaEnum nextSchema accSchema
+    , D4._schemaAllOf = altUnifier const D4._schemaAllOf nextSchema accSchema
+    , D4._schemaAnyOf = altUnifier const D4._schemaAnyOf nextSchema accSchema
+    , D4._schemaOneOf = altUnifier const D4._schemaOneOf nextSchema accSchema
+    , D4._schemaNot = altUnifier const D4._schemaNot nextSchema accSchema
   }

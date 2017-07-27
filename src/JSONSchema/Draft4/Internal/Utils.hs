@@ -1,5 +1,7 @@
 module JSONSchema.Draft4.Internal.Utils
-  ( andMaybe
+  (
+    alt
+  , andMaybe
   , computeMaximumConstraints
   , computeMinimumConstraints
   , zipWithPadding
@@ -11,6 +13,9 @@ import           Protolude
 
 import qualified Data.Scientific          as DS
 import qualified Data.Set                 as DS
+
+alt :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
+alt f a b = f <$> a <*> b <|> a <|> b
 
 -- Make certain functions return Nothing when handed an empty list instead
 -- of carrying on with their current behavior
