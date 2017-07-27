@@ -9,17 +9,8 @@ module JSONSchema.Draft4.Internal.Utils
 
 import           Protolude
 
-import           Control.Applicative
-import           Data.List
-import           Data.Traversable
-
-import qualified Data.Aeson               as AE
-import qualified Data.Aeson.Encode.Pretty as AEEP
-import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Scientific          as DS
 import qualified Data.Set                 as DS
-import qualified JSONSchema.Draft4        as D4
-import qualified Safe                     as S
 
 -- Make certain functions return Nothing when handed an empty list instead
 -- of carrying on with their current behavior
@@ -31,9 +22,6 @@ emptyFold f tma
 -- Returns the and of the Just values or Nothing if there are no Justs
 andMaybe :: [Maybe Bool] -> Maybe Bool
 andMaybe = emptyFold and . catMaybes
-
-orMaybe :: [Maybe Bool] -> Maybe Bool
-orMaybe = emptyFold or . catMaybes
 
 computeMaximumConstraints ::
      [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
