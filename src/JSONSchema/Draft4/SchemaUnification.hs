@@ -13,7 +13,6 @@ import qualified JSONSchema.Validator.Draft4.Array  as V4Arr
 import qualified JSONSchema.Validator.Draft4.Object as V4Obj
 
 import           Data.Semigroup                     ((<>))
-import qualified Safe                               as S
 
 import qualified JSONSchema.Draft4.Internal.Utils   as Utils
 

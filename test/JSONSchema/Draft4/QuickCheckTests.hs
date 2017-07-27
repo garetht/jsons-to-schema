@@ -79,10 +79,10 @@ sizedJsonsProp size = forAllShrink jsonGen $ shrinkList valueShrink
 
 -- N.B. it is in general not true that the empty schema acts as the identity
 -- value with regards to unifySchema because the empty schema represents a
--- more relaxed value exclusiveMinimum, exclusiveMaximum, and required, which we
+-- more relaxed value for required, which we
 -- must respect. To get around this, we create a newtype RestrictedSchema
 -- which has a different instance of Arbitrary which always returns Nothing for
--- the more relaxed values, thus avoiding this issue.
+-- required, thus avoiding this issue.
 newtype RestrictedSchema = RestrictedSchema
   { getSchema :: Schema
   } deriving (Show)
@@ -105,9 +105,9 @@ instance Arbitrary RestrictedSchema where
         e <- pure mempty
         f' <- maybeGen arbitraryPositiveScientific
         g <- maybeGen arbitraryScientific
-        h <- pure Nothing
+        h <- maybeGen arbitrary
         i <- maybeGen arbitraryScientific
-        j <- pure Nothing
+        j <- maybeGen arbitrary
         k <- maybeGen (getPositive <$> arbitrary)
         l <- maybeGen (getPositive <$> arbitrary)
         m <- maybeGen arbitraryText
@@ -132,8 +132,8 @@ instance Arbitrary RestrictedSchema where
         e2 <- maybeRecurse n arbitrary
         pure $
           RestrictedSchema
-            Schema
-            { _schemaVersion = a
+            Schema {
+              _schemaVersion = a
             , _schemaId = b
             , _schemaRef = c
             , _schemaDefinitions = d

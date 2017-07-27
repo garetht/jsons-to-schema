@@ -38,9 +38,9 @@ computeMaximumConstraints maxes emaxes =
     -- maximum (i.e. it is more inclusive)
   where
     zipComparer (m1, em1) (m2, em2) =
-      if m1 == m2
-        then compare (Down em1) (Down em2)
-        else compare m1 m2
+        if m1 == m2
+          then if and $ isNothing <$> [m1, m2] then compare em1 em2 else compare (Down em1) (Down em2)
+          else compare m1 m2
 
 -- Usually the ordering goes like this: Nothing < Just 20 < Just 30, and so the
 -- minimum is Nothing. But we want the ordering to be Just 20 < Just 30 < Nothing
@@ -56,10 +56,9 @@ computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
     justComparer Nothing (Just _) = GT
     justComparer Nothing Nothing = EQ
     zipComparer (m1, em1) (m2, em2)
-            -- We don't need Down here because the comparison is already taking the minimum
      =
       if m1 == m2
-        then compare em1 em2
+        then if and $ isNothing <$> [m1, m2] then compare (Down em1) (Down em2) else compare em1 em2
         else justComparer m1 m2
 
 -- This function is from StackOverflow
