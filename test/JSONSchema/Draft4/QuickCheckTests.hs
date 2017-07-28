@@ -37,9 +37,9 @@ explainSchemaCounterexample jsons schema config =
   " when run with configuration " <>
   show config
 
-explainSchemasCommutativity ::
+explainSchemaCommutative ::
   D4.Schema -> D4.Schema -> GHC.Base.String
-explainSchemasCommutativity s1 s2 =
+explainSchemaCommutative s1 s2 =
   "These schemas could not be united commutatively:" <>
   printSchemaToString s1 <>
   printSchemaToString s2 <>
@@ -47,6 +47,14 @@ explainSchemasCommutativity s1 s2 =
   printSchemaToString (unifySchemas s1 s2) <>
   " but when s2 was unified into s1 the result was\n " <>
   printSchemaToString (unifySchemas s2 s1)
+
+explainSchemaSelfUnify ::
+  D4.Schema -> GHC.Base.String
+explainSchemaSelfUnify s =
+  "This schema did not properly unify with itself:" <>
+  printSchemaToString s <>
+  "When it was unified with itself it should have stayed the same but the result instead was \n" <>
+  printSchemaToString (unifySchemas s s)
 
 testPropUnifyEmptySchemaRightIdentity :: Spec
 testPropUnifyEmptySchemaRightIdentity =
@@ -69,15 +77,28 @@ testPropUnifyEmptySchemaLeftIdentity =
 -- Unable yet to generate recursively commutative schemas
 testSchemaUnificationCommutative :: Spec
 testSchemaUnificationCommutative =
+  modifyMaxSuccess (* 100) $
   modifyMaxSize (const 1) $
-  prop "schema unification of a schema with non-const properties commutative" propUnificationCommutative
+  prop "schema unification of a schema with non-const properties is commutative" propUnificationCommutative
   where
     propUnificationCommutative :: CommutativeSchema -> CommutativeSchema -> Property
     propUnificationCommutative r1 r2 =
-      counterexample (explainSchemasCommutativity s1 s2) (unifySchemas s1 s2 == unifySchemas s2 s1)
+      counterexample (explainSchemaCommutative s1 s2) (unifySchemas s1 s2 == unifySchemas s2 s1)
       where
         s1 = getCommutativeSchema r1
         s2 = getCommutativeSchema r2
+
+-- Unable yet to generate nested schemas without `required`, which must not be empty.
+testSchemaUnifiedWithSelfIsSelf :: Spec
+testSchemaUnifiedWithSelfIsSelf =
+  modifyMaxSuccess (* 100) $
+  modifyMaxSize (const 1) $
+  prop "when a schema is unified with itself it does not change" propSelfUnification
+  where
+    propSelfUnification :: RestrictedSchema -> Property
+    propSelfUnification s =
+      counterexample (explainSchemaSelfUnify rs) (unifySchemas rs rs == rs )
+      where rs = getSchema s
 
 testJsonToSchemaWithConfigValidatesJson :: Spec
 testJsonToSchemaWithConfigValidatesJson =

@@ -27,6 +27,7 @@ instance Arbitrary RestrictedSchema where
     where
       maybeGen :: Gen a -> Gen (Maybe a)
       maybeGen a = oneof [pure Nothing, Just <$> a]
+
       maybeRecurse :: Int -> Gen a -> Gen (Maybe a)
       maybeRecurse n a
         | n < 1 = pure Nothing
