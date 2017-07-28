@@ -7,21 +7,24 @@ import           Data.Conduit                             ((.|))
 import qualified Data.Conduit                             as C
 import qualified Data.Conduit.Combinators                 as CC
 import qualified GHC.Base
-import           Protolude
 
+import           Protolude
 
 import qualified Data.List                                as L
 import           Options.Applicative
 import qualified System.FilePath.Glob                     as G
 
+import qualified JSONSchema.Draft4.Internal.Utils         as Utils
 import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig)
 import qualified JSONSchema.Draft4.SchemaGenerationConfig as SGC
 import           JSONSchema.Draft4.SchemaUnification      (unifySchemas)
-import qualified JSONSchema.Draft4.Internal.Utils as Utils
 
+data Input = FileInput [FilePath]
+           | StandardInput
+           deriving (Show)
 
 data Options = Options {
-    globs  :: [GHC.Base.String]
+    input            :: Input
   , generationConfig :: SGC.SchemaGenerationConfig
 } deriving (Show)
 
@@ -48,14 +51,24 @@ configParser = SGC.SchemaGenerationConfig
               \ When enabled, a JSON object instance that has more properties \
               \ than specified will no longer validate.")
 
+fileInputParser :: Parser Input
+fileInputParser = FileInput
+  <$> some (strOption
+             (long "path"
+           <> short 'p'
+           <> metavar "TARGET"
+           <> help "Can be specified multiple times. Each path can be a glob.\
+                   \ All files matching these paths will be read and their JSONs \
+                   \ will be combined."))
+
+standardInputParser :: Parser Input
+standardInputParser = flag' StandardInput
+       ( long "stdin"
+      <> help "Reads JSON from stdin instead of a path, e.g. cat file.json | json-to-schema --stdin")
+
 parser :: Parser Options
 parser = Options
-  <$> some (strOption
-        (long "path"
-      <> short 'p'
-      <> metavar "TARGET"
-      <> help "Can be specified multiple times. Each path can be a glob.\
-              \ All files matching these paths will be read and "))
+  <$> (fileInputParser <|> standardInputParser)
   <*> configParser
 
 pInfo :: ParserInfo Options
@@ -70,21 +83,22 @@ globPaths ss = (L.concat . fst) <$> G.globDir patterns ""
   where
     patterns = fmap G.compile ss
 
-
-
+getSource (FileInput fps) = do
+  paths <- globPaths fps
+  putText $ fromMaybe (panic "Could not find any files matching any of the globs provided")
+    (if null paths then Nothing else Just "")
+  return $ mapM_ CC.sourceFile paths
+getSource StandardInput = return $ mapM_ CC.sourceHandle [stdin]
 
 main :: IO ()
 main = do
   options <- execParser pInfo
-  paths <- globPaths (globs options)
-
-  putStrLn $ fromMaybe (panic "No paths matched any of the globs provided.") (listToMaybe paths)
-
   let c = generationConfig options
+
+  conduitSource <- getSource (input options)
   schema <- C.runConduitRes
-          $ mapM_ CC.sourceFile paths
+          $ conduitSource
          .| CC.map (jsonToSchemaWithConfig c . Utils.parseValue)
          .| CC.foldl1 unifySchemas
 
-  putText $ Utils.printSchema (fromMaybe (panic "Error unifying schemas") schema)
-
+  putText $ Utils.printSchema (fromMaybe (panic "Error unifying schemas.") schema)
