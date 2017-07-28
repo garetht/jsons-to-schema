@@ -1,8 +1,88 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import Protolude
+import           Data.Conduit                             ((.|))
+import qualified Data.Conduit                             as C
+import qualified Data.Conduit.Combinators                 as CC
+import qualified GHC.Base
+import           Protolude
+
+
+import qualified Data.List                                as L
+import           Options.Applicative
+import qualified System.FilePath.Glob                     as G
+
+import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig)
+import qualified JSONSchema.Draft4.SchemaGenerationConfig as SGC
+import           JSONSchema.Draft4.SchemaUnification      (unifySchemas)
+import qualified JSONSchema.Draft4.Internal.Utils as Utils
+
+
+data Options = Options {
+    globs  :: [GHC.Base.String]
+  , generationConfig :: SGC.SchemaGenerationConfig
+} deriving (Show)
+
+version :: Parser (a -> a)
+version = infoOption "JSON to Schema 0.1.0"
+  (  long "version"
+  <> short 'v'
+  <> help "Prints version information." )
+
+configParser :: Parser SGC.SchemaGenerationConfig
+configParser = SGC.SchemaGenerationConfig
+  <$> switch
+      ( long "type-arrays-as-tuples"
+     <> help "When disabled (default), all objects in an array are assumed to have the \
+              \ same type and are unified accordingly. When enabled, arrays are considered to\
+              \ be tuples and each index will have its own type. For example, [14, false]\
+              \ is either an array that can take integer or boolean objects (disabled) or a tuple \
+              \ that is an integer in its first index and a boolean in its second.")
+  <*> switch
+      ( long "seal-object-properties"
+     <> help "Toggles additionalProperties for each object instance in the JSON schema. \
+              \ When disabled (default), a JSON object instance that has more\
+              \ properties than specified in the schema will continue to validate. \
+              \ When enabled, a JSON object instance that has more properties \
+              \ than specified will no longer validate.")
+
+parser :: Parser Options
+parser = Options
+  <$> some (strOption
+        (long "path"
+      <> short 'p'
+      <> metavar "TARGET"
+      <> help "Can be specified multiple times. Each path can be a glob.\
+              \ All files matching these paths will be read and "))
+  <*> configParser
+
+pInfo :: ParserInfo Options
+pInfo = info
+   (parser <**> helper <**> version)
+   ( fullDesc
+  <> progDesc "A JSON Schema Draft 4 Generator from JSON instances."
+  <> header "JSON to Schema")
+
+globPaths :: [GHC.Base.String] -> IO [FilePath]
+globPaths ss = (L.concat . fst) <$> G.globDir patterns ""
+  where
+    patterns = fmap G.compile ss
+
+
+
 
 main :: IO ()
-main = putText "test"
+main = do
+  options <- execParser pInfo
+  paths <- globPaths (globs options)
+
+  let c = generationConfig options
+  schema <- C.runConduitRes
+          $ mapM_ CC.sourceFile paths
+         .| CC.map (jsonToSchemaWithConfig c . Utils.parseValue)
+         .| CC.foldl1 unifySchemas
+
+  putText $ Utils.printSchema (fromMaybe (panic "Error unifying schemas") schema)
+

@@ -7,12 +7,21 @@ module JSONSchema.Draft4.Internal.Utils
   , zipWithPadding
   , listToMaybeList
   , setToMaybeSet
+  , parseValue
+  , printSchema
   ) where
 
 import           Protolude
 
-import qualified Data.Scientific          as DS
-import qualified Data.Set                 as DS
+import qualified Data.Aeson           as AE
+import qualified Data.ByteString      as BS
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Scientific      as DS
+import qualified Data.Set             as DS
+import qualified Data.Text.Encoding   as TE
+import qualified Data.Aeson.Encode.Pretty          as AEEP
+import qualified JSONSchema.Draft4                        as D4
+
 
 alt :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
 alt f a b = f <$> a <*> b <|> a <|> b
@@ -75,3 +84,13 @@ setToMaybeSet :: DS.Set a -> Maybe (DS.Set a)
 setToMaybeSet s
   | DS.null s = Nothing
   | otherwise = Just s
+
+
+parseValue :: BS.ByteString -> AE.Value
+parseValue s =
+  fromMaybe (panic $ "Failed to parse JSON document " <> TE.decodeUtf8 s) .
+  AE.decode .
+  BSL.fromStrict $ s
+
+printSchema :: D4.Schema -> Text
+printSchema = TE.decodeUtf8 . BSL.toStrict . AEEP.encodePretty . AE.toJSON

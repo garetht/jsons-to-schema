@@ -7,4 +7,5 @@ extra-deps:
 - hjsonschema-1.6.3
 - text-1.2.2.2
 - test-invariant-0.4.5.0
+- cabal-lenses-0.4.9
 resolver: lts-6.35

@@ -8,7 +8,6 @@ import qualified Data.HashMap.Lazy                  as HM
 import qualified Data.Set                           as DS
 import qualified JSONSchema.Draft4                  as D4
 
-import qualified JSONSchema.Validator.Draft4.Any    as V4A
 import qualified JSONSchema.Validator.Draft4.Array  as V4Arr
 import qualified JSONSchema.Validator.Draft4.Object as V4Obj
 

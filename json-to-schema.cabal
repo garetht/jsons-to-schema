@@ -41,12 +41,17 @@ library
 
 executable json-to-schema-exe
   hs-source-dirs:      app
-  ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
   build-depends:       base
                      , json-to-schema
                      , protolude
+                     , optparse-applicative
+                     , Glob
+                     , conduit
+                     , conduit-combinators
+                     , bytestring
+                     , hjsonschema
   default-language:    Haskell2010
 
 test-suite json-to-schema-test
