@@ -78,6 +78,8 @@ main = do
   options <- execParser pInfo
   paths <- globPaths (globs options)
 
+  putStrLn $ fromMaybe (panic "No paths matched any of the globs provided.") (listToMaybe paths)
+
   let c = generationConfig options
   schema <- C.runConduitRes
           $ mapM_ CC.sourceFile paths
