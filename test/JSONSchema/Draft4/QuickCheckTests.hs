@@ -102,13 +102,13 @@ testSchemaUnifiedWithSelfIsSelf =
 
 testJsonToSchemaWithConfigValidatesJson :: Spec
 testJsonToSchemaWithConfigValidatesJson =
-  modifyMaxSuccess (* 10) $
+  modifyMaxSuccess (* 7) $
   prop
     "will generate a schema that can validate the JSON used to generate the schema with a randomized configuration"
     configurer
   where
     configurer :: SchemaGenerationConfig -> Property
-    configurer config = sizedJsonProp 10 (p config)
+    configurer config = sizedJsonProp 7 (p config)
     p :: SchemaGenerationConfig -> AE.Value -> Property
     p config json =
       counterexample
@@ -119,13 +119,13 @@ testJsonToSchemaWithConfigValidatesJson =
 
 testSchemaUnificationValidatesAllJson :: Spec
 testSchemaUnificationValidatesAllJson =
-  modifyMaxSuccess (* 5) $
+  modifyMaxSuccess (* 3) $
   prop
     "will generate a schema that validates all the JSON documents unified to produce it"
     configurer
   where
     configurer :: SchemaGenerationConfig -> Property
-    configurer config = sizedJsonsProp 10 (p config)
+    configurer config = sizedJsonsProp 7 (p config)
     p :: SchemaGenerationConfig -> [AE.Value] -> Property
     p config jsons =
       counterexample
