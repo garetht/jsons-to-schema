@@ -2,7 +2,7 @@
   Module      : JSONSchema.Draft4.Internal.Utils
   Description : Internal utilities.
   Copyright   : (c) Gareth Tan, 2017
-  License     : GPL-3
+  License     : MIT
 
   Assorted internal utilities.
 -}

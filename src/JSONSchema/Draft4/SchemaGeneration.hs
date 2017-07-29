@@ -2,7 +2,7 @@
   Module      : JSONSchema.Draft4.SchemaGeneration
   Description : Generates schemas from JSON and other schemas
   Copyright   : (c) Gareth Tan, 2017
-  License     : GPL-3
+  License     : MIT
 
   A single JSON document can be interpreted multiple ways and
   with differing degrees of strictness when it is converted

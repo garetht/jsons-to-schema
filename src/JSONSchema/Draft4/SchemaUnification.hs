@@ -2,7 +2,7 @@
   Module      : JSONSchema.Draft4.SchemaUnification
   Description : Unification of multiple schemas
   Copyright   : (c) Gareth Tan, 2017
-  License     : GPL-3
+  License     : MIT
 
   Contains a function to combine multiple JSON schemas
   together.

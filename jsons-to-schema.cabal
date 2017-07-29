@@ -3,10 +3,9 @@ version:             0.1.0.0
 synopsis:            JSON to JSON Schema
 description:         A JSON Schema Draft 4 Generator from JSON Instances
 homepage:            https://github.com/garetht/jsons-to-schema/README.md
-license:             BSD3
+license:             MIT
 license-file:        LICENSE
 author:              Gareth Tan
-maintainer:          garethwtan@gmail.com
 copyright:           2017 Gareth Tan
 category:            Web
 build-type:          Simple
