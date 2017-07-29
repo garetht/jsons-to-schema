@@ -146,7 +146,7 @@ script:
         cd "$PKGVER"
         cabal configure --enable-tests
         cabal build
-        cabal test
+        cabal test --show-details=streaming --test-option=--color
         cd $ORIGDIR
       done
       ;;
