@@ -4,6 +4,10 @@
 
 Suppose you have an API that produces complex and somewhat varied JSON. You'd like to be able to document that API in a standard format by observing only its output. [JSON Schema](http://json-schema.org/) is a reasonable format for that. But simply generating the schema for one document will lead to an incomplete description of the API since not all documents will have all the keys in the full document. This is where this library comes in.
 
+## CLI Overview
+
+JSONs to Schema can also be used on the command line. After locating the installed binary, run it with `--help` to get detailed usage instructions.
+
 ## API Overview
 
 The main API function is `jsonsToSchema` along with its configuration-taking equivalent, `jsonsToSchemaWithConfig`. This will transform a set of JSON documents into a single `Maybe` schema. 
