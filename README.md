@@ -1,4 +1,4 @@
-# JSON to Schema
+# JSONs to Schema
 
 **A JSON Schema Draft 4 Generator from JSON Instances**
 
