@@ -1,3 +1,13 @@
+{-|
+  Module      : JSONSchema.Draft4.SchemaUnification
+  Description : Unification of multiple schemas
+  Copyright   : (c) Gareth Tan, 2017
+  License     : GPL-3
+
+  Contains a function to combine multiple JSON schemas
+  together.
+-}
+
 module JSONSchema.Draft4.SchemaUnification
   ( unifySchemas
   ) where
@@ -15,6 +25,19 @@ import           Data.Semigroup                     ((<>))
 
 import qualified JSONSchema.Draft4.Internal.Utils   as Utils
 
+{-| The primary function used to combine multiple JSON schemas.
+
+    This relation cannot be the binary operation of a monoid because
+    the empty schema will act to remove the `required` property of
+    any JSON Schema it is unified with.
+
+    This relation is also not commutative because we arbitrarily select
+    from the alternatives for properties such as the schema @version@
+    that cannot be unified. In addition, when one items schema is
+    an array and another is an object, we simply choose arbitrarily
+    because there is no sensible way of unifying the schemas while
+    preserving all relevant information.
+-}
 unifySchemas :: D4.Schema -> D4.Schema -> D4.Schema
 unifySchemas nextSchema =
   unifyObjectConstraints nextSchema .
@@ -32,7 +55,7 @@ unifySchemas nextSchema =
 -- the foldr1 fails and we get Nothing. Otherwise, the present Just
 -- values are folded together using foldF.
 
---The alternative unifier applies the binary function if both are Just, returns the identity
+-- |The alternative unifier applies the binary function if both are Just, returns the identity
 -- if only one is Just, and Nothing if both are Nothing.
 altUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
 altUnifier binF getter next acc = applied <|> getter next <|> getter acc

@@ -1,3 +1,15 @@
+{-|
+  Module      : JSONSchema.Draft4.SchemaGeneration
+  Description : Generates schemas from JSON and other schemas
+  Copyright   : (c) Gareth Tan, 2017
+  License     : GPL-3
+
+  A single JSON document can be interpreted multiple ways and
+  with differing degrees of strictness when it is converted
+  into a JSON Schema. These options allow the way in which a
+  JSON document is converted into a schema to be customized.
+-}
+
 module JSONSchema.Draft4.SchemaGeneration
   ( jsonToSchema
   , jsonToSchemaWithConfig
@@ -78,6 +90,15 @@ makeArrayAsSingleSchema c xs =
       Just $ V4Arr.ItemsObject $ fromMaybe D4.emptySchema $ jsonsToSchemaWithConfig c xs
   }
 
+{-| Converts a single JSON document into a JSON schema which the document
+    will validate against. Configuration options allow customizing how
+    the original JSON document should be interpreted when it is converted
+    into a schema.
+
+    The options provided control how even recursively nested schemas will
+    be interpreted. There is currently no option to interpret a JSON
+    document one way given one path and another way at another path.
+-}
 jsonToSchemaWithConfig :: SchemaGenerationConfig -> AE.Value -> D4.Schema
 jsonToSchemaWithConfig c (AE.Number n) = makeBasicTypeSchema (if DSC.isInteger n then V4A.SchemaInteger else V4A.SchemaNumber)
 jsonToSchemaWithConfig c (AE.String s) = makeBasicTypeSchema V4A.SchemaString
@@ -87,14 +108,30 @@ jsonToSchemaWithConfig c (AE.Object o) = makeObjectSchema c o
 jsonToSchemaWithConfig c (AE.Array xs) = arrayConverter c xs
   where arrayConverter = if typeArraysAsTuples c then makeArrayAsTupleSchema else makeArrayAsSingleSchema
 
+{-| Converts a single JSON document into a JSON schema which the
+    document will validate against by using the default options specified
+    in 'defaultSchemaGenerationConfig'.
+-}
 jsonToSchema :: AE.Value -> D4.Schema
 jsonToSchema = jsonToSchemaWithConfig defaultSchemaGenerationConfig
 
+{-| Combines multiple schemas into a single schema by folding across them using
+    'unifySchemas'. The 'Maybe' accounts for the case where it is passed
+    an empty 'Foldable'.
+-}
 schemasToSchema :: (Foldable f, Functor f) => f D4.Schema -> Maybe D4.Schema
 schemasToSchema = SF.foldr1May unifySchemas
 
+{-| Combines multiple JSON documents into a single schema by first converting each into a schema and
+    folding across the schemas using 'unifySchemas'. The documents are converted into schemas using
+    the default options specified in 'defaultSchemaGenerationConfig'.
+-}
 jsonsToSchema :: (Foldable f, Functor f) => f AE.Value -> Maybe D4.Schema
 jsonsToSchema = jsonsToSchemaWithConfig defaultSchemaGenerationConfig
 
+{-| Combines multiple JSON documents into a single schema by first converting each into a schema and
+    folding across the schemas using 'unifySchemas'. This allows a specific configuration for parsing
+    the JSON documents into the schemas to be provided.
+-}
 jsonsToSchemaWithConfig :: (Foldable f, Functor f) => SchemaGenerationConfig -> f AE.Value -> Maybe D4.Schema
 jsonsToSchemaWithConfig c = schemasToSchema . fmap (jsonToSchemaWithConfig c)

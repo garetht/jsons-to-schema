@@ -1,3 +1,12 @@
+{-|
+  Module      : JSONSchema.Draft4.Internal.Utils
+  Description : Internal utilities.
+  Copyright   : (c) Gareth Tan, 2017
+  License     : GPL-3
+
+  Assorted internal utilities.
+-}
+
 module JSONSchema.Draft4.Internal.Utils
   (
     alt
@@ -23,20 +32,25 @@ import qualified Data.Aeson.Encode.Pretty          as AEEP
 import qualified JSONSchema.Draft4                        as D4
 
 
+-- |Functions like an Applicative but keeps the 'Just' value if it exists.
 alt :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
 alt f a b = f <$> a <*> b <|> a <|> b
 
--- Make certain functions return Nothing when handed an empty list instead
+-- |Make certain functions return Nothing when handed an empty list instead
 -- of carrying on with their current behavior
 emptyFold :: (Foldable t) => (t a -> a) -> t a -> Maybe a
 emptyFold f tma
   | null tma = Nothing
   | otherwise = Just $ f tma
 
--- Returns the and of the Just values or Nothing if there are no Justs
+-- |Returns the and of the Just values or Nothing if there are no Justs
 andMaybe :: [Maybe Bool] -> Maybe Bool
 andMaybe = emptyFold and . catMaybes
 
+{-| The unification function for the integer constraints @maximum@ and @exclusiveMaximum@.
+    When unifying schemas the @exclusiveMaximum@ may somestimes need to be modified
+    based on the @maximum.
+-}
 computeMaximumConstraints ::
      [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
 computeMaximumConstraints maxes emaxes =
@@ -55,6 +69,10 @@ computeMaximumConstraints maxes emaxes =
 -- minimum is Nothing. But we want the ordering to be Just 20 < Just 30 < Nothing
 -- (Down would provide the ordering Just 30 < Just 20 < Nothing), so we provide
 -- a custom comparison function
+{-| The unification function for the integer constraints @minimum@ and @exclusiveMinimum@.
+    When unifying schemas the @exclusiveMinimum@ may somestimes need to be modified
+    based on the @minimum.
+-}
 computeMinimumConstraints ::
      [Maybe DS.Scientific] -> [Maybe Bool] -> (Maybe DS.Scientific, Maybe Bool)
 computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
@@ -71,26 +89,33 @@ computeMinimumConstraints mins emins = minimumBy zipComparer (zip mins emins)
         else justComparer m1 m2
 
 -- This function is from StackOverflow
+-- | Zips a list but uses the default value if one list is longer than the other.
 zipWithPadding :: a -> b -> [a] -> [b] -> [(a, b)]
 zipWithPadding a b (x:xs) (y:ys) = (x, y) : zipWithPadding a b xs ys
 zipWithPadding a _ [] ys = zip (repeat a) ys
 zipWithPadding _ b xs [] = zip xs (repeat b)
 
+{-| Similar to 'listFromMaybe', but returns the entire list as a
+    'Just' if it is not empty instead of only the first item. -}
 listToMaybeList :: [a] -> Maybe [a]
 listToMaybeList [] = Nothing
 listToMaybeList xs = Just xs
 
+{-| Returns the entire set as a 'Just' if it is not empty
+    instead of only one item. -}
 setToMaybeSet :: DS.Set a -> Maybe (DS.Set a)
 setToMaybeSet s
   | DS.null s = Nothing
   | otherwise = Just s
 
 
+{-| Parses a bytestring to a value. -}
 parseValue :: BS.ByteString -> AE.Value
 parseValue s =
   fromMaybe (panic $ "Failed to parse JSON document " <> TE.decodeUtf8 s) .
   AE.decode .
   BSL.fromStrict $ s
 
+{-| Converts a schema to text. -}
 printSchema :: D4.Schema -> Text
 printSchema = TE.decodeUtf8 . BSL.toStrict . AEEP.encodePretty . AE.toJSON

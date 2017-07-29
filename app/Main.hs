@@ -64,7 +64,7 @@ fileInputParser = FileInput
 standardInputParser :: Parser Input
 standardInputParser = flag' StandardInput
        ( long "stdin"
-      <> help "Reads JSON from stdin instead of a path, e.g. cat file.json | json-to-schema --stdin")
+      <> help "Reads JSON from stdin instead of a path, e.g. cat file.json | jsons-to-schema --stdin")
 
 parser :: Parser Options
 parser = Options
