@@ -77,7 +77,7 @@ testPropUnifyEmptySchemaLeftIdentity =
 -- Unable yet to generate recursively commutative schemas
 testSchemaUnificationCommutative :: Spec
 testSchemaUnificationCommutative =
-  modifyMaxSuccess (* 100) $
+  modifyMaxSuccess (* 50) $
   modifyMaxSize (const 1) $
   prop "schema unification of a schema with non-const properties is commutative" propUnificationCommutative
   where
@@ -91,7 +91,7 @@ testSchemaUnificationCommutative =
 -- Unable yet to generate nested schemas without `required`, which must not be empty.
 testSchemaUnifiedWithSelfIsSelf :: Spec
 testSchemaUnifiedWithSelfIsSelf =
-  modifyMaxSuccess (* 100) $
+  modifyMaxSuccess (* 50) $
   modifyMaxSize (const 1) $
   prop "when a schema is unified with itself it does not change" propSelfUnification
   where
@@ -102,7 +102,7 @@ testSchemaUnifiedWithSelfIsSelf =
 
 testJsonToSchemaWithConfigValidatesJson :: Spec
 testJsonToSchemaWithConfigValidatesJson =
-  modifyMaxSuccess (* 100) $
+  modifyMaxSuccess (* 10) $
   prop
     "will generate a schema that can validate the JSON used to generate the schema with a randomized configuration"
     configurer
@@ -119,7 +119,7 @@ testJsonToSchemaWithConfigValidatesJson =
 
 testSchemaUnificationValidatesAllJson :: Spec
 testSchemaUnificationValidatesAllJson =
-  modifyMaxSuccess (* 50) $
+  modifyMaxSuccess (* 5) $
   prop
     "will generate a schema that validates all the JSON documents unified to produce it"
     configurer
