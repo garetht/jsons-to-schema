@@ -1,7 +1,7 @@
 name:                jsons-to-schema
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            JSON to JSON Schema
+description:         A JSON Schema Draft 4 Generator from JSON Instances
 homepage:            https://github.com/garetht/jsons-to-schema/README.md
 license:             BSD3
 license-file:        LICENSE
