@@ -15,9 +15,8 @@ import           Options.Applicative
 import qualified System.FilePath.Glob                     as G
 
 import qualified JSONSchema.Draft4.Internal.Utils         as Utils
-import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig)
+import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig, unifySchemas)
 import qualified JSONSchema.Draft4.SchemaGenerationConfig as SGC
-import           JSONSchema.Draft4.SchemaUnification      (unifySchemas)
 
 data Input = FileInput [FilePath]
            | StandardInput

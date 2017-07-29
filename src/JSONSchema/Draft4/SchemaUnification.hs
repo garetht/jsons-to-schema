@@ -142,7 +142,7 @@ unifyObjectConstraints nextSchema accSchema = accSchema {
            altUnifier unify D4._schemaAdditionalProperties nextSchema accSchema
     , D4._schemaMaxProperties = altUnifier max D4._schemaMaxProperties nextSchema accSchema
     , D4._schemaMinProperties = altUnifier min D4._schemaMinProperties nextSchema accSchema
-    , D4._schemaPatternProperties = altUnifier HM.union D4._schemaPatternProperties nextSchema accSchema
+    , D4._schemaPatternProperties = altUnifier (HM.unionWith unifySchemas) D4._schemaPatternProperties nextSchema accSchema
   }
   where
     unify :: V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema -> V4Obj.AdditionalProperties D4.Schema

@@ -8,7 +8,6 @@ import           JSONSchema.Draft4
 import qualified JSONSchema.Draft4                        as D4
 import           JSONSchema.Draft4.SchemaGeneration       as JSSC
 import           JSONSchema.Draft4.SchemaGenerationConfig
-import           JSONSchema.Draft4.SchemaUnification      as JU
 
 import qualified GHC.Base
 import           Test.Hspec
@@ -63,7 +62,7 @@ testPropUnifyEmptySchemaRightIdentity =
     p
   where
     p :: RestrictedSchema -> Bool
-    p rs = JU.unifySchemas (getSchema rs) emptySchema == getSchema rs
+    p rs = JSSC.unifySchemas (getSchema rs) emptySchema == getSchema rs
 
 testPropUnifyEmptySchemaLeftIdentity :: Spec
 testPropUnifyEmptySchemaLeftIdentity =
@@ -72,7 +71,7 @@ testPropUnifyEmptySchemaLeftIdentity =
     p
   where
     p :: RestrictedSchema -> Bool
-    p rs = JU.unifySchemas emptySchema (getSchema rs) == getSchema rs
+    p rs = JSSC.unifySchemas emptySchema (getSchema rs) == getSchema rs
 
 -- Unable yet to generate recursively commutative schemas
 testSchemaUnificationCommutative :: Spec

@@ -4,10 +4,23 @@
   Copyright   : (c) Gareth Tan, 2017
   License     : MIT
 
-  A single JSON document can be interpreted multiple ways and
-  with differing degrees of strictness when it is converted
-  into a JSON Schema. These options allow the way in which a
-  JSON document is converted into a schema to be customized.
+  Provides a set of utilities to combine JSON documents or JSON
+  Schemas into a single schema.
+
+  All JSON documents provided __must__be completely dereferenced. JSON
+  references found as @$ref@ keys within the document will be treated
+  as regular key-value pairs. No attempt will be made to determine
+  where those references point to.
+
+  In unfiying schemas we will only attempt the unification of the following :
+  @maximum@, @exclusiveMaximum@, @minimum@, @exclusiveMinimum@,
+  @maxLength@, @minLength@, @items@, @additionalItems@, @maxItems@,
+  @minItems@, @uniqueItems@, @required@, @properties@, @additionalProperties@,
+  @maxProperties@, @minProperties@, @patternProperties@ and @type@.
+
+  Keys that are not in this list are subject to arbitrary overriding when
+  unifying multiple schemas. For example, when unifying two schemas with
+  differing versions, only one of them will be kept.
 -}
 
 module JSONSchema.Draft4.SchemaGeneration

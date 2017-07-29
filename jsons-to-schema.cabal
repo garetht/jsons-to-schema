@@ -6,6 +6,7 @@ homepage:            https://github.com/garetht/jsons-to-schema/README.md
 license:             MIT
 license-file:        LICENSE
 author:              Gareth Tan
+maintainer:          Gareth Tan
 copyright:           2017 Gareth Tan
 category:            Web
 build-type:          Simple
@@ -19,9 +20,9 @@ library
     OverloadedStrings
     NoImplicitPrelude
   exposed-modules:     JSONSchema.Draft4.SchemaGeneration
-                     , JSONSchema.Draft4.SchemaUnification
                      , JSONSchema.Draft4.SchemaGenerationConfig
                      , JSONSchema.Draft4.Internal.Utils
+  other-modules:       JSONSchema.Draft4.SchemaUnification
   build-depends:       base >= 4.7 && < 5
                      , hjsonschema
                      , text
