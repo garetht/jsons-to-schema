@@ -11,7 +11,6 @@ import qualified GHC.Base
 import           Protolude
 
 import qualified Data.List                                as L
-import           Options.Applicative
 import qualified System.FilePath.Glob                     as G
 
 import qualified JSONSchema.Draft4.Internal.Utils         as Utils
