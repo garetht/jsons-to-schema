@@ -12,6 +12,7 @@ description:
     A JSON Schema Draft 4 Generator from JSON Instances
 category: Data, Web, JSON
 author: Gareth Tan
+tested-with: GHC == 7.10.3, GHC == 8.0.2
 extra-source-files:
     README.md
 
@@ -64,7 +65,7 @@ executable jsons-to-schema-exe
 
 test-suite jsons-to-schema-test
     type: exitcode-stdio-1.0
-    main-is: Spec.hs
+    main-is: Main.hs
     build-depends:
         base >=4.7 && <5,
         jsons-to-schema,
@@ -96,4 +97,5 @@ test-suite jsons-to-schema-test
         JSONSchema.Draft4.UnifiersSpec
         TestUtils
         UtilsSpec
+        Spec
     ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing -threaded -rtsopts -with-rtsopts=-N
