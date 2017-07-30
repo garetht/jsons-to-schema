@@ -11,10 +11,12 @@ import qualified GHC.Base
 import           Protolude
 
 import qualified Data.List                                as L
+import           Options.Applicative                      hiding ((<>))
 import qualified System.FilePath.Glob                     as G
 
 import qualified JSONSchema.Draft4.Internal.Utils         as Utils
-import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig, unifySchemas)
+import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig,
+                                                           unifySchemas)
 import qualified JSONSchema.Draft4.SchemaGenerationConfig as SGC
 
 data Input = FileInput [FilePath]
