@@ -8,7 +8,7 @@ license-file:        LICENSE
 author:              Gareth Tan
 maintainer:          Gareth Tan
 copyright:           2017 Gareth Tan
-category:            Web
+category:            Data, Web, JSON
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
