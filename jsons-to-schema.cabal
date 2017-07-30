@@ -1,96 +1,99 @@
-name:                jsons-to-schema
-version:             0.1.0.0
-synopsis:            JSON to JSON Schema
-description:         A JSON Schema Draft 4 Generator from JSON Instances
-homepage:            https://github.com/garetht/jsons-to-schema/README.md
-license:             MIT
-license-file:        LICENSE
-author:              Gareth Tan
-maintainer:          Gareth Tan
-copyright:           2017 Gareth Tan
-category:            Data, Web, JSON
-build-type:          Simple
-extra-source-files:  README.md
-cabal-version:       >=1.10
-
-library
-  hs-source-dirs:      src
-  ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
-  default-extensions:
-    OverloadedStrings
-    NoImplicitPrelude
-  exposed-modules:     JSONSchema.Draft4.SchemaGeneration
-                     , JSONSchema.Draft4.SchemaGenerationConfig
-                     , JSONSchema.Draft4.Internal.Utils
-  other-modules:       JSONSchema.Draft4.SchemaUnification
-  build-depends:       base >= 4.7 && < 5
-                     , hjsonschema
-                     , text
-                     , bytestring
-                     , semigroups
-                     , aeson
-                     , protolude
-                     , aeson-pretty
-                     , unordered-containers
-                     , containers
-                     , vector
-                     , safe
-                     , scientific
-                     , QuickCheck
-  default-language:    Haskell2010
-
-executable jsons-to-schema-exe
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
-  build-depends:       base
-                     , jsons-to-schema
-                     , protolude
-                     , optparse-applicative
-                     , Glob
-                     , conduit
-                     , conduit-combinators
-                     , bytestring
-                     , hjsonschema
-  default-language:    Haskell2010
-
-test-suite jsons-to-schema-test
-  type:                exitcode-stdio-1.0
-  ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
-  hs-source-dirs:      test
-  other-modules:       JSONSchema.Draft4.SchemaConverterSpec
-                     , JSONSchema.Draft4.BasicTypeTests
-                     , JSONSchema.Draft4.ArrayTypeTests
-                     , JSONSchema.Draft4.ComplexTypeTests
-                     , JSONSchema.Draft4.QuickCheckTests
-                     , JSONSchema.Draft4.QuickCheckInstances
-                     , JSONSchema.Draft4.UnifiersSpec
-                     , TestUtils
-                     , UtilsSpec
-  main-is:             Spec.hs
-  default-extensions:
-    OverloadedStrings
-    NoImplicitPrelude
-  build-depends:       base
-                     , jsons-to-schema
-                     , hspec
-                     , scientific
-                     , protolude
-                     , neat-interpolation
-                     , hjsonschema
-                     , text
-                     , bytestring
-                     , aeson
-                     , aeson-pretty
-                     , QuickCheck
-                     , quickcheck-instances
-                     , containers
-                     , unordered-containers
-                     , uniplate
-                     , vector
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
+name: jsons-to-schema
+version: 0.1.0.0
+cabal-version: >=1.10
+build-type: Simple
+license: MIT
+license-file: LICENSE
+copyright: 2017 Gareth Tan
+maintainer: Gareth Tan
+homepage: https://github.com/garetht/jsons-to-schema/README.md
+synopsis: JSON to JSON Schema
+description:
+    A JSON Schema Draft 4 Generator from JSON Instances
+category: Data, Web, JSON
+author: Gareth Tan
+extra-source-files:
+    README.md
 
 source-repository head
-  type:     git
-  location: https://github.com/garetht/jsons-to-schema
+    type: git
+    location: https://github.com/garetht/jsons-to-schema
+
+library
+    exposed-modules:
+        JSONSchema.Draft4.SchemaGeneration
+        JSONSchema.Draft4.SchemaGenerationConfig
+        JSONSchema.Draft4.Internal.Utils
+    build-depends:
+        base >=4.7 && <5,
+        hjsonschema >=1.6.3,
+        text >=1.2.2.2,
+        bytestring >=0.10.6.0,
+        semigroups >=0.18.2,
+        aeson >=0.11.3.0,
+        protolude >=0.1.10,
+        aeson-pretty >=0.7.2,
+        unordered-containers >=0.2.8.0,
+        containers >=0.5.6.2,
+        vector >=0.11.0.0,
+        safe >=0.3.14,
+        scientific >=0.3.4.9,
+        QuickCheck >=2.8.2
+    default-language: Haskell2010
+    default-extensions: OverloadedStrings NoImplicitPrelude
+    hs-source-dirs: src
+    other-modules:
+        JSONSchema.Draft4.SchemaUnification
+    ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
+
+executable jsons-to-schema-exe
+    main-is: Main.hs
+    build-depends:
+        base >=4.7,
+        jsons-to-schema,
+        protolude >=0.1.10,
+        optparse-applicative >=0.12.1.0,
+        Glob >=0.7.14,
+        conduit >=1.2.10,
+        conduit-combinators >=1.0.8.3,
+        bytestring >=0.10.6.0,
+        hjsonschema >=1.6.3
+    default-language: Haskell2010
+    hs-source-dirs: app
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
+
+test-suite jsons-to-schema-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    build-depends:
+        base >=4.7,
+        jsons-to-schema,
+        hspec >=2.2.4,
+        scientific >=0.3.4.9,
+        protolude >=0.1.10,
+        neat-interpolation >=0.3.2.1,
+        hjsonschema >=1.6.3,
+        text >=1.2.2.2,
+        bytestring >=0.10.6.0,
+        aeson >=0.11.3.0,
+        aeson-pretty >=0.7.2,
+        QuickCheck >=2.8.2,
+        quickcheck-instances >=0.3.12,
+        containers >=0.5.6.2,
+        unordered-containers >=0.2.8.0,
+        uniplate >=1.6.12,
+        vector >=0.11.0.0
+    default-language: Haskell2010
+    default-extensions: OverloadedStrings NoImplicitPrelude
+    hs-source-dirs: test
+    other-modules:
+        JSONSchema.Draft4.SchemaConverterSpec
+        JSONSchema.Draft4.BasicTypeTests
+        JSONSchema.Draft4.ArrayTypeTests
+        JSONSchema.Draft4.ComplexTypeTests
+        JSONSchema.Draft4.QuickCheckTests
+        JSONSchema.Draft4.QuickCheckInstances
+        JSONSchema.Draft4.UnifiersSpec
+        TestUtils
+        UtilsSpec
+    ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing -threaded -rtsopts -with-rtsopts=-N
