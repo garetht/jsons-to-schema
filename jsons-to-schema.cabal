@@ -47,7 +47,7 @@ library
         JSONSchema.Draft4.SchemaUnification
     ghc-options: -fwarn-missing-signatures -fwarn-incomplete-patterns -fwarn-unused-imports -fwarn-unused-binds -fwarn-name-shadowing
 
-executable jsons-to-schema-exe
+executable jsons-to-schema
     main-is: Main.hs
     build-depends:
         base >=4.7 && <5,
