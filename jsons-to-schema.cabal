@@ -12,6 +12,7 @@ description:
     A JSON Schema Draft 4 Generator from JSON Instances
 category: Data, Web, JSON
 author: Gareth Tan
+tested-with: GHC == 7.10.3, GHC == 8.0.2
 extra-source-files:
     README.md
 
