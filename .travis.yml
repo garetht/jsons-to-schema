@@ -1,87 +1,68 @@
-# This is the complex Travis configuration, which is intended for use
-# on open source libraries which need compatibility across multiple GHC
-# versions, must work with cabal-install, and should be
-# cross-platform. For more information and other options, see:
-#
-# https://docs.haskellstack.org/en/stable/travis_ci/
-#
-# Copy these contents into the root directory of your Github project in a file
-# named .travis.yml
-
-# Use new container infrastructure to enable caching
 sudo: false
-
-# Do not choose a language; we provide our own build tools.
 language: generic
-
-# Caching so the next build will be fast too.
 cache:
   directories:
-  - $HOME/.ghc
-  - $HOME/.cabal
-  - $HOME/.stack
-
-# The different configurations we want to test. We have BUILD=cabal which uses
-# cabal-install, and BUILD=stack which uses Stack. More documentation on each
-# of those below.
-#
-# We set the compiler values here to tell Travis to use a different
-# cache file per set of arguments.
-#
-# If you need to have different apt packages for each combination in the
-# matrix, you can use a line such as:
-#     addons: {apt: {packages: [libfcgi-dev,libgmp-dev]}}
+  - "$HOME/.ghc"
+  - "$HOME/.cabal"
+  - "$HOME/.stack"
 matrix:
   include:
-  # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
-  # https://github.com/hvr/multi-ghc-travis
   - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 HAPPYVER=1.19.5 ALEXVER=3.1.7
     compiler: ": #GHC 7.10.3"
-    addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
+    addons:
+      apt:
+        packages:
+        - cabal-install-1.22
+        - ghc-7.10.3
+        - happy-1.19.5
+        - alex-3.1.7
+        sources:
+        - hvr-ghc
   - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7
     compiler: ": #GHC 8.0.2"
-    addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
-
-  # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
-  # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS=""
-    compiler: ": #stack default"
-    addons: {apt: {packages: [libgmp-dev]}}
-
-  - env: BUILD=stack ARGS="--resolver lts-6"
-    compiler: ": #stack 7.10.3"
-    addons: {apt: {packages: [libgmp-dev]}}
-
-  - env: BUILD=stack ARGS="--resolver lts-9"
-    compiler: ": #stack 8.0.2"
-    addons: {apt: {packages: [libgmp-dev]}}
-
-  # Build on macOS in addition to Linux
+    addons:
+      apt:
+        packages:
+        - cabal-install-1.24
+        - ghc-8.0.2
+        - happy-1.19.5
+        - alex-3.1.7
+        sources:
+        - hvr-ghc
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default osx"
     os: osx
-
   - env: BUILD=stack ARGS="--resolver lts-6"
     compiler: ": #stack 7.10.3 osx"
     os: osx
-
-  - env: BUILD=stack ARGS="--resolver lts-9"
+  - env: BUILD=stack ARGS="--resolver lts-9" RELEASE=true
     compiler: ": #stack 8.0.2 osx"
     os: osx
-
+  - env: BUILD=stack ARGS=""
+    compiler: ": #stack default"
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
+  - env: BUILD=stack ARGS="--resolver lts-6"
+    compiler: ": #stack 7.10.3"
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
+  - env: BUILD=stack ARGS="--resolver lts-9"
+    compiler: ": #stack 8.0.2"
+    addons:
+      apt:
+        packages:
+        - libgmp-dev
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
   - env: BUILD=stack ARGS="--resolver nightly"
-
 before_install:
-# Using compiler above sets CC to an invalid value, so unset it
 - unset CC
-
-# We want to always allow newer versions of packages when building on GHC HEAD
 - CABALARGS=""
 - if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
-
-# Download and unpack the stack executable
 - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:/opt/alex/$ALEXVER/bin:/opt/happy/$HAPPYVER/bin:$HOME/.cabal/bin:$PATH
 - mkdir -p ~/.local/bin
 - |
@@ -101,9 +82,9 @@ before_install:
   then
     echo 'jobs: $ncpus' >> $HOME/.cabal/config
   fi
-
 install:
-- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo
+  '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi
 - |
   set -ex
@@ -122,7 +103,6 @@ install:
       ;;
   esac
   set +ex
-
 script:
 - |
   set -ex
@@ -152,3 +132,17 @@ script:
       ;;
   esac
   set +ex
+before_deploy:
+  - export RELEASE_BIN=$(stack path --local-install-root)/bin/jsons-to-schema
+  - echo "Deploying
+deploy:
+  provider: releases
+  api_key:
+    secure: DxFl3REnBcEER5fNl+5+S7e66EYwUsGsfzJEtmk7hZ58xpzjaXsRwpq/39LsNpxNf6MqwIZUU+hI5DEAPr4QaHQu/BAUWuipJzTVY5699eAvgdDA2WfSwy0HWX09XVnDVSJCgNeGmIL3qzIR+IdVMpuMiB6hZdPACM5Lh2+SnkrBKiGdFXkD02lAZRK63jXmd9JYZPAjGZqpl/BJvih8nc/3IHBEVULXbPz23tKrA0F7H0CMI+I/ublMlxwhupoblnzw2fknkrPoLEkbAHdvefK+xqL8DZRA2Zt578M6md2VY9SW/ETsUiJeXdlM1/NUQCmNZsxTI9B/UUwjkI1zm5B9KlTMkJk1QwMQJhLNVUrvgDLVqwbeM4UCkVw+FHRa7l8FcjTHE8I6iJLrvxhdjF4b23N399nl6rWaVh7hSlO3SSLMXOyGSQ3kaVAD162/Bh3Jj7k9kaFlkIea22T1HiUxJ/y0IEQQVis9vWaAwV/nxwAsT6LMYqtAIULOSBVOlTir3vp8Sj+iAuKRQDJxh5HSKQEeO9XltUnixSvkIWsdFfxFoOxSDvr4ErDh6dqhDTpQRgerM99+ySBRJ4quxQnMmFWUvo43yz1Ez6FrDejLYQWFpdF/+2d+nbjsuc9TxOFDH29oytlClHkro97IprssSBtgGnCMyVv+7elgQPY=
+  file: "${RELEASE_BIN}"
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: garetht/jsons-to-schema
+    condition: $RELEASE = true
+
