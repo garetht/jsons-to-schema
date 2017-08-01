@@ -133,8 +133,8 @@ script:
   esac
   set +ex
 before_deploy:
-  - export RELEASE_BIN=$(stack path --local-install-root)/bin/jsons-to-schema
-  - stack path
+  - export RELEASE_BIN=$(stack path --local-install-root $ARGS)/bin/jsons-to-schema
+  - stack path $ARGS
   - echo "Deploying "$RELEASE_BIN" to GitHub"
 deploy:
   provider: releases
