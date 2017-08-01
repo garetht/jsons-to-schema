@@ -134,7 +134,7 @@ script:
   set +ex
 before_deploy:
   - export RELEASE_BIN=$(stack path --local-install-root)/bin/jsons-to-schema
-  - echo "Deploying
+  - echo "Deploying "$RELEASE_BIN" to GitHub"
 deploy:
   provider: releases
   api_key:
