@@ -2,15 +2,15 @@ module JSONSchema.Draft4.QuickCheckInstances where
 
 import           Protolude
 
-import qualified Data.Aeson                               as AE
-import qualified Data.HashMap.Lazy                        as HM
-import qualified Data.Vector                              as V
+import qualified Data.Aeson                  as AE
+import qualified Data.HashMap.Lazy           as HM
+import qualified Data.Vector                 as V
 import           JSONSchema.Draft4
 import           JSONSchema.Validator.Utils
 
 import           Data.Generics.Uniplate.Data
 import           Test.QuickCheck
-import           Test.QuickCheck.Instances                ()
+import           Test.QuickCheck.Instances   ()
 
 -- N.B. it is in general not true that the empty schema acts as the identity
 -- value with regards to unifySchema because the empty schema represents a
@@ -27,7 +27,6 @@ instance Arbitrary RestrictedSchema where
     where
       maybeGen :: Gen a -> Gen (Maybe a)
       maybeGen a = oneof [pure Nothing, Just <$> a]
-
       maybeRecurse :: Int -> Gen a -> Gen (Maybe a)
       maybeRecurse n a
         | n < 1 = pure Nothing
@@ -59,8 +58,7 @@ instance Arbitrary RestrictedSchema where
         w <- maybeRecurse n arbitraryHashMap
         x <- maybeRecurse n arbitraryHashMap
         y <- maybeRecurse n arbitrary
-        z <-
-          maybeRecurse n (fmap _unArbitraryValue . _unNonEmpty' <$> arbitrary)
+        z <- maybeRecurse n (fmap _unArbitraryValue . _unNonEmpty' <$> arbitrary)
         a2 <- arbitrary
         b2 <- maybeRecurse n (_unNonEmpty' <$> arbitrary)
         c2 <- maybeRecurse n (_unNonEmpty' <$> arbitrary)
@@ -68,8 +66,8 @@ instance Arbitrary RestrictedSchema where
         e2 <- maybeRecurse n arbitrary
         pure $
           RestrictedSchema
-            Schema {
-              _schemaVersion = a
+            Schema
+            { _schemaVersion = a
             , _schemaId = b
             , _schemaRef = c
             , _schemaDefinitions = d
@@ -154,8 +152,8 @@ instance Arbitrary CommutativeSchema where
         e2 <- pure Nothing
         pure $
           CommutativeSchema
-            Schema {
-              _schemaVersion = a
+            Schema
+            { _schemaVersion = a
             , _schemaId = b
             , _schemaRef = c
             , _schemaDefinitions = d
@@ -196,13 +194,7 @@ instance Arbitrary AE.Value where
 
 sizedArbitraryValue :: Int -> Gen AE.Value
 sizedArbitraryValue n
-  | n <= 0 =
-    oneof
-      [ pure AE.Null
-      , AE.Bool <$> arbitrary
-      , AE.Number <$> arbitrary
-      , AE.String <$> arbitrary
-      ]
+  | n <= 0 = oneof [pure AE.Null, AE.Bool <$> arbitrary, AE.Number <$> arbitrary, AE.String <$> arbitrary]
   | otherwise =
     resize (div n 2) $
     oneof
@@ -216,8 +208,7 @@ sizedArbitraryValue n
 
 simpleShrink :: AE.Value -> [AE.Value]
 simpleShrink (AE.Array a) = map (AE.Array . V.fromList) $ shrink $ V.toList a
-simpleShrink (AE.Object o) =
-  map (AE.Object . HM.fromList) $ shrink $ HM.toList o
+simpleShrink (AE.Object o) = map (AE.Object . HM.fromList) $ shrink $ HM.toList o
 simpleShrink _ = [] -- Nothing for simple objects
 
 valueShrink :: AE.Value -> [AE.Value]

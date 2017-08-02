@@ -9,9 +9,7 @@ import           Test.Hspec
 import           TestUtils
 
 testUnifyEmptySchemas :: Spec
-testUnifyEmptySchemas =
-  it "will unify two empty schemas" $
-  testUnifySchemas emptySchema emptySchema emptySchema
+testUnifyEmptySchemas = it "will unify two empty schemas" $ testUnifySchemas emptySchema emptySchema emptySchema
 
 testUnifySingleValueConstraints :: Spec
 testUnifySingleValueConstraints =

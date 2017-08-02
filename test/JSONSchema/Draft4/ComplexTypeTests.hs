@@ -9,12 +9,10 @@ import           Test.Hspec
 import           TestUtils
 
 tupleTypedArrayConfig :: SchemaGenerationConfig
-tupleTypedArrayConfig =
-  defaultSchemaGenerationConfig {typeArraysAsTuples = True}
+tupleTypedArrayConfig = defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 
 sealedObjectPropertiesConfig :: SchemaGenerationConfig
-sealedObjectPropertiesConfig =
-  defaultSchemaGenerationConfig {sealObjectProperties = True}
+sealedObjectPropertiesConfig = defaultSchemaGenerationConfig {sealObjectProperties = True}
 
 testSingleEmptyObject :: Spec
 testSingleEmptyObject =
@@ -46,8 +44,7 @@ testSingleBasicObject =
 
 testSingleBasicObjectSealingProperties :: Spec
 testSingleBasicObjectSealingProperties =
-  it
-    "can generate the schema for a single basic object while sealing properties" $
+  it "can generate the schema for a single basic object while sealing properties" $
   let j1 =
         [text| {
                       "Red Windsor": "Normally, but today the van broke down.",
@@ -118,8 +115,7 @@ testComplexObjectInArray =
 
 testComplexObjectInArraySealingProperties :: Spec
 testComplexObjectInArraySealingProperties =
-  it
-    "can generate the schema for objects that are in arrays while sealing properties" $
+  it "can generate the schema for objects that are in arrays while sealing properties" $
   let j1 =
         [text| [
                       {"name": "Sir Lancelot of Camelot",
@@ -177,8 +173,7 @@ testComplexThreeDeepObject =
 
 testComplexThreeDeepObjectSealingProperties :: Spec
 testComplexThreeDeepObjectSealingProperties =
-  it
-    "can generate the schema for a deeply nested object while sealing properties" $
+  it "can generate the schema for a deeply nested object while sealing properties" $
   let j1 = [text| {"matryoshka": {"design": {"principle": "FTW!"}}} |]
       expected =
         [text| {

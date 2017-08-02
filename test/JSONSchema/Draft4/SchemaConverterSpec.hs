@@ -9,7 +9,6 @@ import           Test.Hspec
 
 -- Many of these tests are borrowed from Python's GenSON
 -- https://github.com/wolverdude/GenSON
-
 spec :: Spec
 spec = do
   describe "Single Instances of Basic Types" $ do
@@ -51,9 +50,7 @@ spec = do
     testTupleArraysEmpty
     testTupleArraysMultitype
     testTupleArraysNested
-  describe
-    "Combining Multiple Instances of Object Types"
-    testMultipleEmptyObjects
+  describe "Combining Multiple Instances of Object Types" testMultipleEmptyObjects
   describe "Schema Properties" $ do
     testPropUnifyEmptySchemaRightIdentity
     testPropUnifyEmptySchemaLeftIdentity

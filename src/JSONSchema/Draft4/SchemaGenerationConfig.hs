@@ -9,7 +9,6 @@
   into a JSON Schema. These options allow the way in which a
   JSON document is converted into a schema to be customized.
 -}
-
 module JSONSchema.Draft4.SchemaGenerationConfig
   ( SchemaGenerationConfig(..)
   , defaultSchemaGenerationConfig
@@ -22,7 +21,6 @@ import           Test.QuickCheck (Arbitrary, Gen, arbitrary, sized)
     into a JSON schema.
 -}
 data SchemaGenerationConfig = SchemaGenerationConfig
-
   { typeArraysAsTuples   :: Bool
     -- ^  If set to @'True'@, each array will be considered a tuple of type
     --    @(a, b, c...)@ and the schema will be generated so that each member
@@ -49,8 +47,7 @@ data SchemaGenerationConfig = SchemaGenerationConfig
    'JSONSchema.Draft4.SchemaGeneration.jsonsToSchema'.
 -}
 defaultSchemaGenerationConfig :: SchemaGenerationConfig
-defaultSchemaGenerationConfig =
-  SchemaGenerationConfig {typeArraysAsTuples = False, sealObjectProperties = False}
+defaultSchemaGenerationConfig = SchemaGenerationConfig {typeArraysAsTuples = False, sealObjectProperties = False}
 
 instance Arbitrary SchemaGenerationConfig where
   arbitrary = sized f
