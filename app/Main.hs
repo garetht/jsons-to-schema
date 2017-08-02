@@ -3,21 +3,21 @@
 
 module Main where
 
-import           Data.Conduit                             ((.|))
-import qualified Data.Conduit                             as C
-import qualified Data.Conduit.Combinators                 as CC
+import           Data.Conduit                       ((.|))
+import qualified Data.Conduit                       as C
+import qualified Data.Conduit.Combinators           as CC
 import qualified GHC.Base
 
 import           Protolude
 
-import qualified Data.List                                as L
-import           Options.Applicative                      hiding ((<>))
-import qualified System.FilePath.Glob                     as G
+import qualified Data.List                          as L
+import           Options.Applicative                hiding ((<>))
+import qualified System.FilePath.Glob               as G
 
-import qualified JSONSchema.Draft4.Internal.Utils         as Utils
-import           JSONSchema.Draft4.SchemaGeneration       (jsonToSchemaWithConfig,
-                                                           unifySchemas)
-import qualified JSONSchema.Draft4.SchemaGenerationConfig as SGC
+import qualified JSONSchema.Draft4.Internal.Utils   as Utils
+import qualified JSONSchema.Draft4.SchemaConfig     as SGC
+import           JSONSchema.Draft4.SchemaGeneration (jsonToSchemaWithConfig,
+                                                     unifySchemas)
 
 data Input
   = FileInput [FilePath]
@@ -50,7 +50,16 @@ configParser =
               \ When disabled (default), a JSON object instance that has more\
               \ properties than specified in the schema will continue to validate. \
               \ When enabled, a JSON object instance that has more properties \
-              \ than specified will no longer validate.")
+              \ than specified will no longer validate.") <*>
+  switch
+    (long "enumerate-primitives" <>
+     help
+       "Toggles whether to insert the constraint for the JSON value as its type or its \
+        \ precise value. This will only be done for the five primitive JSON types. \
+        \ When disabled (default), the type of the JSON value will be \
+        \ determined (string, integer, number, etc.) and the constraint will be inserted \
+        \ accordingly (\"type\": \"string\" and so forth). When disabled, the precise JSON \
+        \ value will be inserted as a constraint with enum (\"enum\": [12], for example). ")
 
 fileInputParser :: Parser Input
 fileInputParser =

@@ -23,7 +23,7 @@ source-repository head
 library
     exposed-modules:
         JSONSchema.Draft4.SchemaGeneration
-        JSONSchema.Draft4.SchemaGenerationConfig
+        JSONSchema.Draft4.SchemaConfig
         JSONSchema.Draft4.Internal.Utils
     build-depends:
         base >=4.7 && <5,

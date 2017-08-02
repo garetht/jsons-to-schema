@@ -2,19 +2,19 @@ module JSONSchema.Draft4.QuickCheckTests where
 
 import           Protolude
 
-import qualified Data.Aeson                               as AE
+import qualified Data.Aeson                            as AE
 import           JSONSchema.Draft4
 
-import qualified JSONSchema.Draft4                        as D4
-import           JSONSchema.Draft4.SchemaGeneration       as JSSC
-import           JSONSchema.Draft4.SchemaGenerationConfig
+import qualified JSONSchema.Draft4                     as D4
+import           JSONSchema.Draft4.SchemaConfig
+import           JSONSchema.Draft4.SchemaGeneration    as JSSC
 
 import qualified GHC.Base
 import           JSONSchema.Draft4.QuickCheckInstances
 import           Test.Hspec
 import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
-import           Test.QuickCheck.Instances                ()
+import           Test.QuickCheck.Instances             ()
 import           TestUtils
 
 tupleTypedArrayConfig :: SchemaGenerationConfig

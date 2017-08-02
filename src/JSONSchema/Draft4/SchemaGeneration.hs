@@ -48,15 +48,22 @@ import qualified JSONSchema.Validator.Draft4.Object       as V4Obj
 
 import qualified Safe.Foldable                            as SF
 
+import           Data.List.NonEmpty                       (NonEmpty ((:|)))
 import qualified JSONSchema.Draft4.Internal.Utils         as Utils
-import           JSONSchema.Draft4.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaConfig
 
-makeBasicTypeSchema :: V4A.SchemaType -> D4.Schema
-makeBasicTypeSchema t = D4.emptySchema {D4._schemaType = Just $ V4A.TypeValidatorString t}
+generateBasicTypeSchema :: V4A.SchemaType -> D4.Schema
+generateBasicTypeSchema t = D4.emptySchema {D4._schemaType = Just $ V4A.TypeValidatorString t}
+
+makePrimitiveTypeSchema :: SchemaGenerationConfig -> V4A.SchemaType -> AE.Value -> D4.Schema
+makePrimitiveTypeSchema c t v =
+  if enumeratePrimitives c
+    then D4.emptySchema {D4._schemaEnum = Just $ v :| []}
+    else generateBasicTypeSchema t
 
 makeObjectSchema :: SchemaGenerationConfig -> AE.Object -> D4.Schema
 makeObjectSchema c o =
-  (makeBasicTypeSchema V4A.SchemaObject)
+  (generateBasicTypeSchema V4A.SchemaObject)
   { D4._schemaRequired = requireds o
   , D4._schemaProperties = properties o
   , D4._schemaAdditionalProperties = additionalProperties
@@ -79,7 +86,7 @@ makeObjectSchema c o =
 
 makeArrayAsTupleSchema :: SchemaGenerationConfig -> AE.Array -> D4.Schema
 makeArrayAsTupleSchema c xs =
-  (makeBasicTypeSchema V4A.SchemaArray)
+  (generateBasicTypeSchema V4A.SchemaArray)
     -- the inner Maybe checks to see if the array is empty
     --  because "items": [] is not valid according to the metaschema
     -- Under 5.3.1.4.  Default values the absence of `items` is equivalent
@@ -91,7 +98,7 @@ makeArrayAsTupleSchema c xs =
 
 makeArrayAsSingleSchema :: SchemaGenerationConfig -> AE.Array -> D4.Schema
 makeArrayAsSingleSchema c xs =
-  (makeBasicTypeSchema V4A.SchemaArray)
+  (generateBasicTypeSchema V4A.SchemaArray)
   {D4._schemaItems = Just $ V4Arr.ItemsObject $ fromMaybe D4.emptySchema $ jsonsToSchemaWithConfig c xs}
 
 {-| Converts a single JSON document into a JSON schema which the document
@@ -104,14 +111,16 @@ makeArrayAsSingleSchema c xs =
     document one way given one path and another way at another path.
 -}
 jsonToSchemaWithConfig :: SchemaGenerationConfig -> AE.Value -> D4.Schema
-jsonToSchemaWithConfig c (AE.Number n) =
-  makeBasicTypeSchema
+jsonToSchemaWithConfig c v@(AE.Number n) =
+  makePrimitiveTypeSchema
+    c
     (if DSC.isInteger n
        then V4A.SchemaInteger
        else V4A.SchemaNumber)
-jsonToSchemaWithConfig c (AE.String s) = makeBasicTypeSchema V4A.SchemaString
-jsonToSchemaWithConfig c (AE.Bool s) = makeBasicTypeSchema V4A.SchemaBoolean
-jsonToSchemaWithConfig c AE.Null = makeBasicTypeSchema V4A.SchemaNull
+    v
+jsonToSchemaWithConfig c v@(AE.String _) = makePrimitiveTypeSchema c V4A.SchemaString v
+jsonToSchemaWithConfig c v@(AE.Bool _) = makePrimitiveTypeSchema c V4A.SchemaBoolean v
+jsonToSchemaWithConfig c AE.Null = makePrimitiveTypeSchema c V4A.SchemaNull AE.Null
 jsonToSchemaWithConfig c (AE.Object o) = makeObjectSchema c o
 jsonToSchemaWithConfig c (AE.Array xs) = arrayConverter c xs
   where

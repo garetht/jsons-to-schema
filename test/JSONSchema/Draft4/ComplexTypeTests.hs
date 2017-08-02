@@ -2,7 +2,7 @@
 
 module JSONSchema.Draft4.ComplexTypeTests where
 
-import           JSONSchema.Draft4.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec

@@ -2,15 +2,14 @@
 
 module JSONSchema.Draft4.ArrayTypeTests where
 
-import           JSONSchema.Draft4.SchemaGenerationConfig
+import           JSONSchema.Draft4.SchemaConfig
 import           NeatInterpolation
 import           Protolude
 import           Test.Hspec
 import           TestUtils
 
 tupleTypedArrayConfig :: SchemaGenerationConfig
-tupleTypedArrayConfig =
-  defaultSchemaGenerationConfig {typeArraysAsTuples = True}
+tupleTypedArrayConfig = defaultSchemaGenerationConfig {typeArraysAsTuples = True}
 
 testSingleNonTupleArrayEmpty :: Spec
 testSingleNonTupleArrayEmpty =
@@ -34,8 +33,7 @@ testSingleNonTupleArrayMonotype =
 
 testSingleNonTupleArrayMultitype :: Spec
 testSingleNonTupleArrayMultitype =
-  it
-    "can generate the schema for a single non-tuple typed array of multiple different types" $
+  it "can generate the schema for a single non-tuple typed array of multiple different types" $
   let j1 = [text| [1, "2", null, false] |]
       expected =
         [text|
@@ -50,8 +48,7 @@ testSingleNonTupleArrayMultitype =
 
 testSingleNonTupleArrayNested :: Spec
 testSingleNonTupleArrayNested =
-  it
-    "can generate the schema for a single non-tuple typed array with nested arrays" $
+  it "can generate the schema for a single non-tuple typed array with nested arrays" $
   let j1 =
         [text| [
                         ["surprise"],
@@ -74,8 +71,7 @@ testSingleNonTupleArrayNested =
 
 testSingleTupleArrayEmpty :: Spec
 testSingleTupleArrayEmpty =
-  it
-    "can generate the schema for a single positionally typed tuple array that is empty" $
+  it "can generate the schema for a single positionally typed tuple array that is empty" $
   let j1 = [text| [] |]
       expected =
         [text|
@@ -85,8 +81,7 @@ testSingleTupleArrayEmpty =
 
 testSingleTupleArrayMultitype :: Spec
 testSingleTupleArrayMultitype =
-  it
-    "can generate the schema for a single positionally typed tuple array with different types at different positions" $ do
+  it "can generate the schema for a single positionally typed tuple array with different types at different positions" $ do
     let j1 = [text| [1, "2", "3", null, false] |]
     let expected =
           [text|
@@ -106,8 +101,7 @@ testSingleTupleArrayMultitype =
 
 testSingleTupleArrayNested :: Spec
 testSingleTupleArrayNested =
-  it
-    "can generate the schema for a single positionally typed tuple array that is quite nested" $
+  it "can generate the schema for a single positionally typed tuple array that is quite nested" $
   let j1 =
         [text| [
                         ["surprise"],
@@ -169,8 +163,7 @@ testNonTupleArrayEmpty =
 
 testNonTupleArrayMonotype :: Spec
 testNonTupleArrayMonotype =
-  it
-    "can generate the schema for multiple non-tuple typed arrays with only one type" $
+  it "can generate the schema for multiple non-tuple typed arrays with only one type" $
   let j1 = [text| ["spam", "spam", "spam", "eggs", "spam"] |]
       j2 = [text| ["spam", "bacon", "eggs", "spam"] |]
       expected =
@@ -181,8 +174,7 @@ testNonTupleArrayMonotype =
 
 testNonTupleArrayMultitype :: Spec
 testNonTupleArrayMultitype =
-  it
-    "can generate the schema for multiple non-tuple typed arrays with multiple types" $
+  it "can generate the schema for multiple non-tuple typed arrays with multiple types" $
   let j1 = [text| [1, "2", "3", null, false] |]
       j2 = [text| [1, 2, "3", false] |]
       expected =
@@ -203,8 +195,7 @@ testNonTupleArrayMultitype =
 
 testNonTupleArrayNested :: Spec
 testNonTupleArrayNested =
-  it
-    "can generate the schema for multiple non-tuple typed arrays with nested array types" $
+  it "can generate the schema for multiple non-tuple typed arrays with nested array types" $
   let j1 =
         [text|
         [
@@ -252,8 +243,7 @@ testTupleArraysEmpty =
 
 testTupleArraysMultitype :: Spec
 testTupleArraysMultitype =
-  it
-    "can generate the schema for multiple tuple typed arrays that have different types in each position" $ do
+  it "can generate the schema for multiple tuple typed arrays that have different types in each position" $ do
     let j1 = [text| [1, "2", "3", null, false] |]
     let j2 = [text| [1, 2, "3", false] |]
     let expected =

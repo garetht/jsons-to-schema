@@ -50,14 +50,14 @@ unifySchemas nextSchema =
 -- the foldr1 fails and we get Nothing. Otherwise, the present Just
 -- values are folded together using foldF.
 -- |The alternative unifier applies the binary function if both are Just, returns the identity
--- if only one is Just, and Nothing if both are Nothing.
+-- if only one is Just, and Nothing if both are Nothing. Similar to an (||).
 altUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
 altUnifier binF getter next acc = applied <|> getter next <|> getter acc
   where
     applied = applicativeUnifier binF getter next acc
 
 -- The applicative unifier applies the binary function but returns Nothing if either
--- is Nothing in the manner of an applicative.
+-- is Nothing in the manner of an applicative. Similar to an (&&).
 applicativeUnifier :: (a -> a -> a) -> (b -> Maybe a) -> b -> b -> Maybe a
 applicativeUnifier binF getter next acc = binF <$> getter next <*> getter acc
 
@@ -169,7 +169,7 @@ unifyAnyInstanceConstraints nextSchema accSchema =
   { D4._schemaType = altUnifier (<>) D4._schemaType nextSchema accSchema
   , D4._schemaEnum = altUnifier const D4._schemaEnum nextSchema accSchema
   , D4._schemaAllOf = altUnifier const D4._schemaAllOf nextSchema accSchema
-  , D4._schemaAnyOf = altUnifier const D4._schemaAnyOf nextSchema accSchema
+  , D4._schemaAnyOf = altUnifier (<>) D4._schemaAnyOf nextSchema accSchema
   , D4._schemaOneOf = altUnifier const D4._schemaOneOf nextSchema accSchema
   , D4._schemaNot = altUnifier const D4._schemaNot nextSchema accSchema
   }
