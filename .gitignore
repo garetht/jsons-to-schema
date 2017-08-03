@@ -1,4 +1,6 @@
 .idea
-json-to-schema.iml
+.ideaHaskellLib
+jsons-to-schema.iml
 .stack-work
 sample.json
+cabal.config
