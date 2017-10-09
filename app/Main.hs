@@ -29,7 +29,7 @@ data Options = Options {
 } deriving (Show)
 
 version :: Parser (a -> a)
-version = infoOption "JSON to Schema 0.1.0"
+version = infoOption "JSON to Schema 0.2.0-SNAPSHOT"
   (  long "version"
   <> short 'v'
   <> help "Prints version information." )
