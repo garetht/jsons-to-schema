@@ -26,6 +26,7 @@ import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.Scientific          as DS
 import qualified Data.Set                 as DS
+import qualified Data.Text                as T
 import qualified Data.Text.Encoding       as TE
 import qualified JSONSchema.Draft4        as D4
 
@@ -107,7 +108,7 @@ setToMaybeSet s
 
 {-| Parses a bytestring to a value. -}
 parseValue :: BS.ByteString -> AE.Value
-parseValue s = fromMaybe (panic $ "Failed to parse JSON document " <> TE.decodeUtf8 s) . AE.decode . BSL.fromStrict $ s
+parseValue s = either (panic . T.pack . (\err -> "Failed to parse JSON: " <> err)) identity (AE.eitherDecodeStrict' s)
 
 {-| Converts a schema to text. -}
 printSchema :: D4.Schema -> Text
